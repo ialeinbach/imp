@@ -14,10 +14,10 @@ const (
 )
 
 type lexer struct {
-	start     int
-	curr      int
-	input     string
-	err       error
+	start int
+	curr  int
+	input string
+	err   error
 }
 
 func Lexer(input string) *lexer {
