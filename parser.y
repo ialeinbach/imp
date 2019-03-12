@@ -14,7 +14,7 @@ var ParserVerbosity int
 }
 
 %token <str> CMD REG NUM CR
-%type <strlist> arg args delim term decl stmt program main
+%type <strlist> arg args delim call decl stmt program main
 
 %start main
 
@@ -27,18 +27,18 @@ main
 	}
 
 program
-	: program term {debugParser(1, true, "program -> program delim term\n\n")}
-	| term {debugParser(1, true, "program -> term\n\n")}
+	: program stmt {debugParser(1, true, "program -> program delim stmt\n\n")}
+	| stmt {debugParser(1, true, "program -> stmt\n\n")}
 
-term
-	: decl delim {debugParser(1, true, "term -> decl \n\n")}
-	| stmt delim {debugParser(1, true, "term -> stmt \n\n")}
+stmt
+	: decl delim {debugParser(1, true, "stmt -> decl \n\n")}
+	| call delim {debugParser(1, true, "stmt -> call \n\n")}
 
 decl
 	: ':' CMD args '{' delim program '}' {debugParser(1, true, "decl -> :CMD args delim { program }\n\n")}
 
-stmt
-	: CMD args {debugParser(1, true, "stmt -> CMD args\n\n")}
+call
+	: CMD args {debugParser(1, true, "call -> CMD args\n\n")}
 
 args
 	: /* nullable */ {debugParser(1, true, "args -> EPSILON\n\n")}
