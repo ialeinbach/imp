@@ -26,6 +26,11 @@ func main() {
 		src []byte
 		err error
 	)
+	if flag.NArg() == 0 {
+		fmt.Println("Nothing to do.\n")
+		flag.PrintDefaults()
+		return
+	}
 	for _, f := range flag.Args() {
 		src, err = ioutil.ReadFile(f)
 		if err == nil {
