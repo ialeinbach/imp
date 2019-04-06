@@ -3,6 +3,7 @@ package imp
 import (
 	"errors"
 	"fmt"
+	"encoding/json"
 )
 
 func repr(rn rune) string {
@@ -14,6 +15,14 @@ func repr(rn rune) string {
 	default:
 		return string(rn)
 	}
+}
+
+func pprintAst(ast []Stmt) {
+	j, err := json.MarshalIndent(ast, "", "\t")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Print(string(append(j, '\n')))
 }
 
 func ErrorPrefix(strs ...string) error {
