@@ -1,4 +1,4 @@
-package imp
+package internal
 
 type (
 	Reg struct { Val int }

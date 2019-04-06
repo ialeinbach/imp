@@ -1,0 +1,12 @@
+:f @a, @b {
+	mul @a, @b
+	sub @b, #1
+	ret? @b, #0
+	rec
+}
+
+:fct @a, @b {
+	mov @a, #1
+	f @a, @b
+	ret
+}

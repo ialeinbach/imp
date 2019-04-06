@@ -1,4 +1,4 @@
-package imp
+package frontend
 
 //go:generate goyacc -l -o parser.go parser.y
 

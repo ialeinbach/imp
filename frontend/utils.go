@@ -1,9 +1,10 @@
-package imp
+package frontend
 
 import (
 	"errors"
 	"fmt"
 	"encoding/json"
+	"imp/internal"
 )
 
 func repr(rn rune) string {
@@ -17,7 +18,7 @@ func repr(rn rune) string {
 	}
 }
 
-func pprintAst(ast []Stmt) {
+func pprintAst(ast []internal.Stmt) {
 	j, err := json.MarshalIndent(ast, "", "\t")
 	if err != nil {
 		panic(err)

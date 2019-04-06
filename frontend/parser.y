@@ -1,10 +1,11 @@
 %{
 
-package imp
+package frontend
 
 import (
 	"fmt"
 	"strconv"
+	"imp/internal"
 )
 
 const (
@@ -17,9 +18,9 @@ var ParserVerbosity int
 
 %union{
 	str       string
-	arglist   []Arg
-	paramlist []Param
-	stmtlist  []Stmt
+	arglist   []internal.Arg
+	paramlist []internal.Param
+	stmtlist  []internal.Stmt
 }
 
 %token <str> CMD REG REG_ALIAS NUM NUM_ALIAS CR
@@ -70,19 +71,23 @@ stmt:
 decl:
 	':' CMD params '{' delim program '}' {
 		debugParser(1, true, "decl -> :CMD params delim { program }\n\n")
-		$$ = []Stmt{ Stmt(Decl{Cmd: $2, Params: $3, Body: $6}) }
+		$$ = []internal.Stmt{
+			internal.Stmt(internal.Decl{Cmd: $2, Params: $3, Body: $6}),
+		}
 	}
 
 call:
 	CMD args {
 		debugParser(1, true, "call -> CMD args\n\n")
-		$$ = []Stmt{ Stmt(Call{Cmd: $1, Args: $2}) }
+		$$ = []internal.Stmt{
+			internal.Stmt(internal.Call{Cmd: $1, Args: $2}),
+		}
 	}
 
 args:
 	/* nullable */ {
 		debugParser(1, true, "args -> EPSILON\n\n")
-		$$ = make([]Arg, 0, 0)
+		$$ = make([]internal.Arg, 0, 0)
 	}
 |
 	arg ',' args {
@@ -102,7 +107,9 @@ arg:
 		if err != nil {
 			panic(err)
 		}
-		$$ = []Arg{ Arg(Reg{Val: int(r)}) }
+		$$ = []internal.Arg{
+			internal.Arg(internal.Reg{Val: int(r)}),
+		}
 	}
 |
 	NUM {
@@ -111,23 +118,29 @@ arg:
 		if err != nil {
 			panic(err)
 		}
-		$$ = []Arg{ Arg(Num{Val: n}) }
+		$$ = []internal.Arg{
+			internal.Arg(internal.Num{Val: n}),
+		}
 	}
 |
 	REG_ALIAS {
 		debugParser(1, true, "arg -> REG_ALIAS\n\n")
-		$$ = []Arg{ Arg(RegAlias{Name: $1}) }
+		$$ = []internal.Arg{
+			internal.Arg(internal.RegAlias{Name: $1}),
+		}
 	}
 |
 	NUM_ALIAS {
 		debugParser(1, true, "arg -> NUM_ALIAS\n\n")
-		$$ = []Arg{ Arg(NumAlias{Name: $1}) }
+		$$ = []internal.Arg{
+			internal.Arg(internal.NumAlias{Name: $1}),
+		}
 	}
 
 params:
 	/* nullable */ {
 		debugParser(1, true, "params -> EPSILON\n\n")
-		$$ = make([]Param, 0, 0)
+		$$ = make([]internal.Param, 0, 0)
 	}
 |
 	param ',' params {
@@ -145,12 +158,16 @@ params:
 param:
 	REG_ALIAS {
 		debugParser(1, true, "arg -> REG_ALIAS\n\n")
-		$$ = []Param{ Param(RegAlias{Name: $1}) }
+		$$ = []internal.Param{
+			internal.Param(internal.RegAlias{Name: $1}),
+		}
 	}
 |
 	NUM_ALIAS {
 		debugParser(1, true, "arg -> NUM_ALIAS\n\n")
-		$$ = []Param{ Param(NumAlias{Name: $1}) }
+		$$ = []internal.Param{
+			internal.Param(internal.NumAlias{Name: $1}),
+		}
 	}
 
 delim
