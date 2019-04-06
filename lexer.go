@@ -37,9 +37,6 @@ var (
 	predIdent lexerPred = func(rn rune) bool {
 		return predAlpha(rn) || rn == '_' || rn == '?'
 	}
-	predRegister lexerPred = func(rn rune) bool {
-		return predAlpha(rn) || predNumber(rn)
-	}
 	predRegPrefix lexerPred = func(rn rune) bool {
 		return rn == REG_PREFIX
 	}
@@ -74,10 +71,15 @@ func (l *lexer) lexPred(pred lexerPred, max int) (n int) {
 }
 
 func (l *lexer) lexPrefixed(prefix lexerPred, suffix lexerPred, max int) (n int) {
-	// ignore lone prefix
 	defer func() {
-		if n > 1 {
+		// ignore prefix
+		switch {
+		case n > 1:
 			l.start++
+			n -= 1
+		case n == 1:
+			l.curr--
+			n = 0
 		}
 	}()
 
@@ -102,12 +104,22 @@ func (l *lexer) lexCmd() int {
 
 func (l *lexer) lexReg() int {
 	debugLexer(2, true, "Lexing REG\n")
-	return l.lexPrefixed(predRegPrefix, predRegister, MAX_IDENT_LENGTH)
+	return l.lexPrefixed(predRegPrefix, predNumber, MAX_NUM_LENGTH)
+}
+
+func (l *lexer) lexRegAlias() int {
+	debugLexer(2, true, "Lexing REG_ALIAS\n")
+	return l.lexPrefixed(predRegPrefix, predIdent, MAX_IDENT_LENGTH)
 }
 
 func (l *lexer) lexNum() int {
 	debugLexer(2, true, "Lexing NUM\n")
 	return l.lexPrefixed(predNumPrefix, predNumber, MAX_NUM_LENGTH)
+}
+
+func (l *lexer) lexNumAlias() int {
+	debugLexer(2, true, "Lexing NUM_ALIAS\n")
+	return l.lexPrefixed(predNumPrefix, predIdent, MAX_IDENT_LENGTH)
 }
 
 func (l *lexer) lexeme() string {
@@ -140,9 +152,15 @@ func (l *lexer) Lex(lval *yySymType) int {
 		case l.lexCmd() > 0:
 			l.emit("CMD", lval)
 			return CMD
+		case l.lexRegAlias() > 0:
+			l.emit("REG_ALIAS", lval)
+			return REG_ALIAS
 		case l.lexReg() > 0:
 			l.emit("REG", lval)
 			return REG
+		case l.lexNumAlias() > 0:
+			l.emit("NUM_ALIAS", lval)
+			return NUM_ALIAS
 		case l.lexNum() > 0:
 			l.emit("NUM", lval)
 			return NUM
