@@ -25,12 +25,12 @@ type (
 )
 
 func (r Reg) Arg()      {}
-func (r Num) Arg()      {}
+func (n Num) Arg()      {}
 func (r RegAlias) Arg() {}
-func (r NumAlias) Arg() {}
+func (n NumAlias) Arg() {}
 
 func (r RegAlias) Param() {}
-func (r NumAlias) Param() {}
+func (n NumAlias) Param() {}
 
 func (c Call) Stmt() {}
-func (c Decl) Stmt() {}
+func (d Decl) Stmt() {}
