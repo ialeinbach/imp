@@ -10,18 +10,26 @@ type (
 	Call struct {
 		Cmd  string
 		Args []Arg
+
+		Line int
 	}
 	Decl struct {
 		Cmd  string
 		Params []Param
 		Body []Stmt
+
+		Line int
 	}
 )
 
 type (
 	Arg   interface{ Arg() }
 	Param interface{ Param() }
-	Stmt  interface{ Stmt() }
+
+	Stmt  interface{
+		Stmt()
+		Line() int
+	}
 )
 
 func (r Reg) Arg()      {}
@@ -34,3 +42,11 @@ func (n NumAlias) Param() {}
 
 func (c Call) Stmt() {}
 func (d Decl) Stmt() {}
+
+func (c Call) Line() int {
+	return c.Line
+}
+
+func (d Decl) Line() int {
+	return d.Line
+}

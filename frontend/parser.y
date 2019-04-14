@@ -12,7 +12,11 @@ const (
 	MAX_ARG_COUNT int = 6
 )
 
-var ParserVerbosity int
+var (
+	ParserVerbosity int
+	line            int = 1
+)
+
 
 %}
 
@@ -72,7 +76,12 @@ decl:
 	':' CMD params '{' delim program '}' {
 		debugParser(1, true, "decl -> :CMD params delim { program }\n\n")
 		$$ = []internal.Stmt{
-			internal.Stmt(internal.Decl{Cmd: $2, Params: $3, Body: $6}),
+			internal.Stmt(internal.Decl{
+				Cmd: $2,
+				Params: $3,
+				Body: $6,
+				Line: line - (len($6)+1),
+			}),
 		}
 	}
 
@@ -80,7 +89,11 @@ call:
 	CMD args {
 		debugParser(1, true, "call -> CMD args\n\n")
 		$$ = []internal.Stmt{
-			internal.Stmt(internal.Call{Cmd: $1, Args: $2}),
+			internal.Stmt(internal.Call{
+				Cmd: $1,
+				Args: $2,
+				Line: line,
+			}),
 		}
 	}
 
@@ -170,6 +183,13 @@ param:
 		}
 	}
 
-delim
-	: CR delim { debugParser(1, true, "delim -> CR delim\n\n") }
-	| CR { debugParser(1, true, "delim -> CR\n\n") }
+delim:
+	CR delim {
+		debugParser(1, true, "delim -> CR delim\n\n")
+		line++
+	}
+|
+	CR {
+		debugParser(1, true, "delim -> CR\n\n")
+		line++
+	}
