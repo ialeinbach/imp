@@ -8,29 +8,21 @@ import (
 	"imp/internal"
 )
 
-const (
-	MAX_ARG_COUNT int = 6
-)
+const MAX_ARG_COUNT int = 6
 
-var (
-	ParserVerbosity int
-	line            int = 1
-)
-
+var ParserVerbosity int
 
 %}
 
 %union{
-	str       string
+	tok       Token
 	arglist   []internal.Arg
-	paramlist []internal.Param
 	stmtlist  []internal.Stmt
 }
 
-%token <str> CMD REG REG_ALIAS NUM NUM_ALIAS CR
+%token <tok> CMD REG NUM CR
 
 %type <arglist> arg args
-%type <paramlist> param params
 %type <stmtlist> decl call stmt program main
 
 %start main
@@ -73,14 +65,14 @@ stmt:
 	}
 
 decl:
-	':' CMD params '{' delim program '}' {
-		debugParser(1, true, "decl -> :CMD params delim { program }\n\n")
+	':' CMD args '{' delim program '}' {
+		debugParser(1, true, "decl -> :CMD args delim { program }\n\n")
 		$$ = []internal.Stmt{
 			internal.Stmt(internal.Decl{
-				Cmd: $2,
-				Params: $3,
+				Cmd: $2.Lexeme,
+				Args: $3,
 				Body: $6,
-				Line: line - (len($6)+1),
+				Line: $2.Line,
 			}),
 		}
 	}
@@ -90,9 +82,9 @@ call:
 		debugParser(1, true, "call -> CMD args\n\n")
 		$$ = []internal.Stmt{
 			internal.Stmt(internal.Call{
-				Cmd: $1,
+				Cmd: $1.Lexeme,
 				Args: $2,
-				Line: line,
+				Line: $1.Line,
 			}),
 		}
 	}
@@ -116,80 +108,33 @@ args:
 arg:
 	REG {
 		debugParser(1, true, "arg -> REG\n\n")
-		r, err := strconv.ParseInt($1, 0, 64)
-		if err != nil {
-			panic(err)
-		}
 		$$ = []internal.Arg{
-			internal.Arg(internal.Reg{Val: int(r)}),
+			internal.Arg(internal.Reg{
+				Alias: $1.Lexeme,
+				Line:  $1.Line,
+			}),
 		}
 	}
 |
 	NUM {
 		debugParser(1, true, "arg -> NUM\n\n")
-		n, err := strconv.ParseInt($1, 0, 64)
+		n, err := strconv.ParseInt($1.Lexeme, 0, 64)
 		if err != nil {
 			panic(err)
 		}
 		$$ = []internal.Arg{
-			internal.Arg(internal.Num{Val: n}),
-		}
-	}
-|
-	REG_ALIAS {
-		debugParser(1, true, "arg -> REG_ALIAS\n\n")
-		$$ = []internal.Arg{
-			internal.Arg(internal.RegAlias{Name: $1}),
-		}
-	}
-|
-	NUM_ALIAS {
-		debugParser(1, true, "arg -> NUM_ALIAS\n\n")
-		$$ = []internal.Arg{
-			internal.Arg(internal.NumAlias{Name: $1}),
-		}
-	}
-
-params:
-	/* nullable */ {
-		debugParser(1, true, "params -> EPSILON\n\n")
-		$$ = make([]internal.Param, 0, 0)
-	}
-|
-	param ',' params {
-		debugParser(1, true, "params -> param, params\n\n")
-		$$ = append($1, $3...)
-	}
-|
-	param {
-		debugParser(1, true, "params -> param\n\n")
-		$$ = $1
-	}
-
-
-
-param:
-	REG_ALIAS {
-		debugParser(1, true, "arg -> REG_ALIAS\n\n")
-		$$ = []internal.Param{
-			internal.Param(internal.RegAlias{Name: $1}),
-		}
-	}
-|
-	NUM_ALIAS {
-		debugParser(1, true, "arg -> NUM_ALIAS\n\n")
-		$$ = []internal.Param{
-			internal.Param(internal.NumAlias{Name: $1}),
+			internal.Arg(internal.Num{
+				Value: n,
+				Line:  $1.Line,
+			}),
 		}
 	}
 
 delim:
 	CR delim {
 		debugParser(1, true, "delim -> CR delim\n\n")
-		line++
 	}
 |
 	CR {
 		debugParser(1, true, "delim -> CR\n\n")
-		line++
 	}

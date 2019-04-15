@@ -7,35 +7,57 @@ import "fmt"
 var LexerVerbosity int
 
 const (
-	MAX_IDENT_LENGTH int  = 8
-	MAX_NUM_LENGTH   int  = 21 // can hold all int64 values (incl. sign)
-	NUM_PREFIX       rune = '#'
-	REG_PREFIX       rune = '@'
+	MAX_CMD_LENGTH int  = 16
+	MAX_REG_LENGTH int  = 8
+	MAX_NUM_LENGTH int  = 21 // can hold all int64 values (incl. sign)
+
+	NUM_PREFIX     rune = '#'
+	REG_PREFIX     rune = '@'
 )
 
 type lexer struct {
 	start int
 	curr  int
 	input string
+	line  int
 	err   error
 }
 
+type Token struct {
+	Lexeme string
+	Line   int
+}
+
 func Lexer(input string) *lexer {
-	return &lexer{input: input}
+	return &lexer{input: input, line: 1}
 }
 
 // No lexerPred closures allowed.
 type lexerPred func(rn rune) bool
 
 var (
-	predNumber lexerPred = func(rn rune) bool {
+	predDec lexerPred = func(rn rune) bool {
 		return rn >= '0' && rn <= '9'
 	}
-	predAlpha lexerPred = func(rn rune) bool {
-		return rn >= 'a' && rn <= 'z'
+	predHex lexerPred = func(rn rune) bool {
+		return (
+			(rn >= 'A' && rn <= 'F') ||
+			(rn >= 'a' && rn <= 'f') ||
+			predDec(rn)              )
 	}
-	predIdent lexerPred = func(rn rune) bool {
-		return predAlpha(rn) || rn == '_' || rn == '?'
+	predAlpha lexerPred = func(rn rune) bool {
+		return (
+			(rn >= 'a' && rn <= 'z') ||
+			(rn >= 'A' && rn <= 'Z') )
+	}
+	predCmdLiteral lexerPred = func(rn rune) bool {
+		return predAlpha(rn) || predDec(rn) || rn == '_' || rn == '?'
+	}
+	predRegLiteral lexerPred = func(rn rune) bool {
+		return predAlpha(rn) || predHex(rn)
+	}
+	predNumLiteral lexerPred = func(rn rune) bool {
+		return predHex(rn)
 	}
 	predRegPrefix lexerPred = func(rn rune) bool {
 		return rn == REG_PREFIX
@@ -47,26 +69,35 @@ var (
 
 func (l *lexer) emit(tokName string, lval *yySymType) {
 	lexeme := l.lexeme()
+
 	debugLexer(1, true, "Emitting %s(%s)\n", tokName, lexeme)
+
 	if LexerVerbosity == 1 {
 		fmt.Printf("\n")
 	}
-	lval.str = lexeme
+	lval.tok = Token{
+		Lexeme: lexeme,
+		Line:   l.line,
+	}
 	l.start = l.curr
+
 	debugLexer(2, true, "====================\n\n")
 }
 
 func (l *lexer) lexPred(pred lexerPred, max int) (n int) {
 	debugLexer(2, true, "--------------------\n")
 	debugLexer(2, true, "Reading '%s'\t", repr(rune(l.input[l.curr])))
+
 	for len(l.input[l.curr:]) > 0 && n < max && pred(rune(l.input[l.curr])) {
 		debugLexer(2, false, "  OK\n")
 		l.curr++
 		debugLexer(2, true, "Reading '%s'\t", repr(rune(l.input[l.curr])))
 		n++
 	}
+
 	debugLexer(2, false, "FAIL\n")
 	debugLexer(2, true, "--------------------\n")
+
 	return
 }
 
@@ -99,27 +130,17 @@ func (l *lexer) lexPrefixed(prefix lexerPred, suffix lexerPred, max int) (n int)
 
 func (l *lexer) lexCmd() int {
 	debugLexer(2, true, "Lexing CMD\n")
-	return l.lexPred(predIdent, MAX_IDENT_LENGTH)
+	return l.lexPred(predCmdLiteral, MAX_CMD_LENGTH)
 }
 
 func (l *lexer) lexReg() int {
 	debugLexer(2, true, "Lexing REG\n")
-	return l.lexPrefixed(predRegPrefix, predNumber, MAX_NUM_LENGTH)
-}
-
-func (l *lexer) lexRegAlias() int {
-	debugLexer(2, true, "Lexing REG_ALIAS\n")
-	return l.lexPrefixed(predRegPrefix, predIdent, MAX_IDENT_LENGTH)
+	return l.lexPrefixed(predRegPrefix, predRegLiteral, MAX_REG_LENGTH)
 }
 
 func (l *lexer) lexNum() int {
 	debugLexer(2, true, "Lexing NUM\n")
-	return l.lexPrefixed(predNumPrefix, predNumber, MAX_NUM_LENGTH)
-}
-
-func (l *lexer) lexNumAlias() int {
-	debugLexer(2, true, "Lexing NUM_ALIAS\n")
-	return l.lexPrefixed(predNumPrefix, predIdent, MAX_IDENT_LENGTH)
+	return l.lexPrefixed(predNumPrefix, predNumLiteral, MAX_NUM_LENGTH)
 }
 
 func (l *lexer) lexeme() string {
@@ -140,35 +161,33 @@ func (l *lexer) Lex(lval *yySymType) int {
 			debugLexer(1, true, "Emitting CR\n\n")
 			l.curr++
 			l.start++
+			l.line++
 			return CR
 		case ':', ',', '{', '}':
 			debugLexer(1, true, "Emitting SYM(%c)\n\n", ch)
 			l.curr++
 			l.start++
-			return int(ch)
+			return ch
 		}
+
 		debugLexer(2, true, "====================\n")
+
 		switch {
 		case l.lexCmd() > 0:
 			l.emit("CMD", lval)
 			return CMD
-		case l.lexRegAlias() > 0:
-			l.emit("REG_ALIAS", lval)
-			return REG_ALIAS
 		case l.lexReg() > 0:
 			l.emit("REG", lval)
 			return REG
-		case l.lexNumAlias() > 0:
-			l.emit("NUM_ALIAS", lval)
-			return NUM_ALIAS
 		case l.lexNum() > 0:
 			l.emit("NUM", lval)
 			return NUM
 		}
+
 		l.err = ErrorPrefix("Unrecognized input encountered:", repr(rune(ch)), "\n")
-		return int(ch)
+		return ch
 	}
-	return int(ch)
+	return ch
 }
 
 // Satisfies yyLexer.
