@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"encoding/json"
-	"imp/internal"
 )
 
 func repr(rn rune) string {
@@ -18,7 +17,7 @@ func repr(rn rune) string {
 	}
 }
 
-func pprintAst(ast []internal.Stmt) {
+func pprintAst(ast []Stmt) {
 	j, err := json.MarshalIndent(ast, "", "\t")
 	if err != nil {
 		panic(err)

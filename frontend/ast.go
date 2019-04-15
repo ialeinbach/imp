@@ -1,4 +1,4 @@
-package internal
+package frontend
 
 type (
 	Reg struct {

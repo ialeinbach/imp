@@ -5,7 +5,6 @@ package frontend
 import (
 	"fmt"
 	"strconv"
-	"imp/internal"
 )
 
 const MAX_ARG_COUNT int = 6
@@ -15,9 +14,9 @@ var ParserVerbosity int
 %}
 
 %union{
-	tok       Token
-	arglist   []internal.Arg
-	stmtlist  []internal.Stmt
+	tok      Token
+	arglist  []Arg
+	stmtlist []Stmt
 }
 
 %token <tok> CMD REG NUM CR
@@ -67,32 +66,32 @@ stmt:
 decl:
 	':' CMD args '{' delim program '}' {
 		debugParser(1, true, "decl -> :CMD args delim { program }\n\n")
-		$$ = []internal.Stmt{
-			internal.Stmt(internal.Decl{
+		$$ = []Stmt{Stmt(
+			Decl{
 				Cmd: $2.Lexeme,
 				Args: $3,
 				Body: $6,
 				Line: $2.Line,
-			}),
-		}
+			},
+		)}
 	}
 
 call:
 	CMD args {
 		debugParser(1, true, "call -> CMD args\n\n")
-		$$ = []internal.Stmt{
-			internal.Stmt(internal.Call{
+		$$ = []Stmt{Stmt(
+			Call{
 				Cmd: $1.Lexeme,
 				Args: $2,
 				Line: $1.Line,
-			}),
-		}
+			},
+		)}
 	}
 
 args:
 	/* nullable */ {
 		debugParser(1, true, "args -> EPSILON\n\n")
-		$$ = make([]internal.Arg, 0, 0)
+		$$ = make([]Arg, 0, 0)
 	}
 |
 	arg ',' args {
@@ -108,12 +107,12 @@ args:
 arg:
 	REG {
 		debugParser(1, true, "arg -> REG\n\n")
-		$$ = []internal.Arg{
-			internal.Arg(internal.Reg{
+		$$ = []Arg{Arg(
+			Reg{
 				Alias: $1.Lexeme,
 				Line:  $1.Line,
-			}),
-		}
+			},
+		)}
 	}
 |
 	NUM {
@@ -122,12 +121,12 @@ arg:
 		if err != nil {
 			panic(err)
 		}
-		$$ = []internal.Arg{
-			internal.Arg(internal.Num{
+		$$ = []Arg{Arg(
+			Num{
 				Value: n,
 				Line:  $1.Line,
-			}),
-		}
+			},
+		)}
 	}
 
 delim:
