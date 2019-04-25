@@ -2,17 +2,18 @@ package frontend
 
 //go:generate goyacc -l -o parser.go parser.y
 
-import "fmt"
-
-var LexerVerbosity int
+import (
+	"imp/errors"
+	"imp/internal"
+)
 
 const (
-	MAX_CMD_LENGTH int  = 16
-	MAX_REG_LENGTH int  = 8
-	MAX_NUM_LENGTH int  = 21 // can hold all int64 values (incl. sign)
+	MaxCmdLength int = 16
+	MaxRegLength int = 8
+	MaxNumLength int = 21 // can hold all int64 values (incl. sign)
 
-	NUM_PREFIX     rune = '#'
-	REG_PREFIX     rune = '@'
+	NumPrefix rune = '#'
+	RegPrefix rune = '@'
 )
 
 type lexer struct {
@@ -21,6 +22,7 @@ type lexer struct {
 	input string
 	line  int
 	err   error
+	ret   []internal.Stmt
 }
 
 type Token struct {
@@ -29,7 +31,7 @@ type Token struct {
 }
 
 func Lexer(input string) *lexer {
-	return &lexer{input: input, line: 1}
+	return &lexer{ input: input, line: 1 }
 }
 
 // No lexerPred closures allowed.
@@ -57,46 +59,46 @@ var (
 		return predAlpha(rn) || predHex(rn)
 	}
 	predNumLiteral lexerPred = func(rn rune) bool {
-		return predHex(rn)
+		return predAlpha(rn) || predHex(rn)
 	}
 	predRegPrefix lexerPred = func(rn rune) bool {
-		return rn == REG_PREFIX
+		return rn == RegPrefix
 	}
 	predNumPrefix lexerPred = func(rn rune) bool {
-		return rn == NUM_PREFIX
+		return rn == NumPrefix
 	}
 )
 
 func (l *lexer) emit(tokName string, lval *yySymType) {
 	lexeme := l.lexeme()
 
-	debugLexer(1, true, "Emitting %s(%s)\n", tokName, lexeme)
+	errors.DebugLexer(1, true, "Emitting %s(%s)\n", tokName, lexeme)
 
-	if LexerVerbosity == 1 {
-		fmt.Printf("\n")
-	}
+//	if LexerVerbosityFlag == 1 {
+//		fmt.Printf("\n")
+//	}
 	lval.tok = Token{
 		Lexeme: lexeme,
 		Line:   l.line,
 	}
 	l.start = l.curr
 
-	debugLexer(2, true, "====================\n\n")
+	errors.DebugLexer(2, true, "====================\n\n")
 }
 
 func (l *lexer) lexPred(pred lexerPred, max int) (n int) {
-	debugLexer(2, true, "--------------------\n")
-	debugLexer(2, true, "Reading '%s'\t", repr(rune(l.input[l.curr])))
+	errors.DebugLexer(2, true, "--------------------\n")
+	errors.DebugLexer(2, true, "Reading '%s'\t", errors.Repr(rune(l.input[l.curr])))
 
 	for len(l.input[l.curr:]) > 0 && n < max && pred(rune(l.input[l.curr])) {
-		debugLexer(2, false, "  OK\n")
+		errors.DebugLexer(2, false, "  OK\n")
 		l.curr++
-		debugLexer(2, true, "Reading '%s'\t", repr(rune(l.input[l.curr])))
+		errors.DebugLexer(2, true, "Reading '%s'\t", errors.Repr(rune(l.input[l.curr])))
 		n++
 	}
 
-	debugLexer(2, false, "FAIL\n")
-	debugLexer(2, true, "--------------------\n")
+	errors.DebugLexer(2, false, "FAIL\n")
+	errors.DebugLexer(2, true, "--------------------\n")
 
 	return
 }
@@ -129,18 +131,18 @@ func (l *lexer) lexPrefixed(prefix lexerPred, suffix lexerPred, max int) (n int)
 }
 
 func (l *lexer) lexCmd() int {
-	debugLexer(2, true, "Lexing CMD\n")
-	return l.lexPred(predCmdLiteral, MAX_CMD_LENGTH)
+	errors.DebugLexer(2, true, "Lexing CMD\n")
+	return l.lexPred(predCmdLiteral, MaxCmdLength)
 }
 
 func (l *lexer) lexReg() int {
-	debugLexer(2, true, "Lexing REG\n")
-	return l.lexPrefixed(predRegPrefix, predRegLiteral, MAX_REG_LENGTH)
+	errors.DebugLexer(2, true, "Lexing REG\n")
+	return l.lexPrefixed(predRegPrefix, predRegLiteral, MaxRegLength)
 }
 
 func (l *lexer) lexNum() int {
-	debugLexer(2, true, "Lexing NUM\n")
-	return l.lexPrefixed(predNumPrefix, predNumLiteral, MAX_NUM_LENGTH)
+	errors.DebugLexer(2, true, "Lexing NUM\n")
+	return l.lexPrefixed(predNumPrefix, predNumLiteral, MaxNumLength)
 }
 
 func (l *lexer) lexeme() string {
@@ -158,19 +160,19 @@ func (l *lexer) Lex(lval *yySymType) int {
 			l.start++
 			continue
 		case '\n':
-			debugLexer(1, true, "Emitting CR\n\n")
+			errors.DebugLexer(1, true, "Emitting CR\n\n")
 			l.curr++
 			l.start++
 			l.line++
 			return CR
 		case ':', ',', '{', '}':
-			debugLexer(1, true, "Emitting SYM(%c)\n\n", ch)
+			errors.DebugLexer(1, true, "Emitting SYM(%c)\n\n", ch)
 			l.curr++
 			l.start++
 			return ch
 		}
 
-		debugLexer(2, true, "====================\n")
+		errors.DebugLexer(2, true, "====================\n")
 
 		switch {
 		case l.lexCmd() > 0:
@@ -184,7 +186,7 @@ func (l *lexer) Lex(lval *yySymType) int {
 			return NUM
 		}
 
-		l.err = ErrorPrefix("Unrecognized input encountered:", repr(rune(ch)), "\n")
+		l.Error(errors.UnrecognizedInput(rune(ch)))
 		return ch
 	}
 	return ch
@@ -192,14 +194,5 @@ func (l *lexer) Lex(lval *yySymType) int {
 
 // Satisfies yyLexer.
 func (l *lexer) Error(str string) {
-	l.err = ErrorPrefix(str)
-}
-
-func Parse(input string) (ret int) {
-	l := Lexer(input)
-	ret = yyParse(l)
-	if l.err != nil {
-		debugLexer(0, true, "%s\n", l.err)
-	}
-	return
+	l.err = errors.New(str)
 }
