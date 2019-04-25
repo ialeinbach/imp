@@ -25,3 +25,4 @@ Control flow is implemented in a recursive style. There are two special builtins
 * Implicitly return at the end of a procedure.
 * Optimize reg X passed as arg X to produce no psuedo-instructions (see examples/test3.imp).
 * Get `go install` working for repo.
+* Build interpreter for psuedo-instructions.
