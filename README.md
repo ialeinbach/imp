@@ -1,31 +1,26 @@
 # imp
 
-*imp* is a toy, recursive assembly language. It is a work in progress. Currently, it can only be lexed and parsed.
+*imp* is a toy, recursive assembly language. It is a work in progress. Currently, it can generate psuedo-instructions that will eventually be translated to architecture-specific machine code.
 
 #### Usage
 
-Run `make test` to lex and parse a test source file with maximum verbosity enabled.
+Run `make` to build *impc*, the imp compiler.
 
-The programming models consists of 16 global, general purpose, 64-bit registers referred to as `@0`, `@1`, ..., `@15`. Integer constants are prefixed with a `#` (e.g. `#2`, `#-5`, `#0032`). There are only two types of statements: *subroutine definitions* and *subroutine calls*. Each must be terminated with a new line. Additionally, there must be at least one new line after the open brace of a definition.
+There are two types of statements: procedure calls (calls) and procedure declarations (decls). Newlines must be placed at the end of a call, end of a decl, and after the open brace of a decl. Decls cannot be nested (yet...?).
 
-#### Subroutine Definition
-```
-:subroutine_name @reg_alias, #int_alias, ... {
-    subroutine_body
-}
-```
+The calls in a decl body can only reference the aliases in that decl's parameter list (i.e. no globals). Parameter lists can contain integer and/or register aliases. Register parameters must be passed register arguments, but integer parameters can be passed either integer or register arguments. Typechecking is performed on calls to enforce these rules.
 
-#### Subroutine Call
-```
-subroutine_name @reg, #int, ...
-```
+The programming model will eventually be dynamic with respect to compilation flags and target architecture limitations. Currently (and arbitrarily), there are 8 registers and procedures can have at most 6 arguments.
 
-Register and integer constant arguments in a subroutine call are bound to register and integer constant aliases by position in the subroutine definition for the execution of the subroutine body.  Integer constants cannot be bound to register aliases and vice versa. There are two special subroutine calls: `rec` and `ret`.
+Control flow is implemented in a recursive style. There are two special builtins `ret` and `rec`. When passed 0 arguments, `ret` simply returns from the procedure and `rec` recurses (i.e. jumps to the beginning of the procedure). When passed 2 arguments, only when the arguments are equal do they return or recurse.
 
-`ret` given no arguments returns to the caller and continues execution at the next subroutine call. If `ret` is called with two arguments, it gets a question mark (i.e. must be called as `ret?`) and the arguments are compared for equality. On failure, the `ret` is skipped.
+#### Todo
 
-`rec` given no arguments jumps to the beginning of the currently executing subroutine body. If `rec` is called with two arguments, it gets a question mark (i.e. must be called as `rec?`), and the arguments are compared for equality. On failure, the `rec` is skipped.
-
-Subroutine names can consist of lowercase ASCII letters and ASCII underscores (i.e. [a-z\_]). Register and integer aliases can be single lowercase or uppercase ASCII letters (i.e. [A-Za-z]). The same register cannot be passed to a subroutine call in more than one position.
-
-Files are executed line-by-line starting at the first. Subroutine definitions can be nested but are only callable within the top level of scope within which they're defined (not including the use of `rec`). Subroutine definitions are also hoisted in the sense that they are callable before execution encounters their definitions.
+* Prevent integer parameters whose alias can be interpreted as a number (i.e. #123 as a parameter).
+* Add full ret/rec functionality.
+* Maybe require a "main" procedure to be used as an entry point?
+* Maybe define a return register a la x86 and rax?
+* Decide how to and implement plug-and-play target architectures.
+* Tidy error handling.
+* Implicitly return at the end of a procedure.
+* Optimize reg X passed as arg X to produce no psuedo-instructions (see examples/test3.imp).
