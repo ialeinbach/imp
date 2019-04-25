@@ -1,0 +1,16 @@
+:f @a, @b, @c, @d {
+	mov @a, @b
+	mov @b, @c
+	mov @c, @d
+	ret
+}
+
+f @1, @0, @3, @2
+
+:g @hi, @hello, @hey {
+	mov @hi, @hey
+	mov @hello, @hi
+	ret
+}
+
+g @2, @1, @0

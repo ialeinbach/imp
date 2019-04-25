@@ -1,0 +1,8 @@
+:f @a, @b, @c, @d {
+	mov @a, @b
+	mov @b, @c
+	mov @c, @d
+	ret
+}
+
+f @1, @0, @3, @2
