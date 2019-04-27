@@ -7,7 +7,7 @@ import (
 // Wrapper for flatten().
 func Flatten(prog []Stmt) (out []Ins, err error) {
 	out, err = flatten(prog, GlobalScope())
-	errors.DebugBackend(1, true, DumpPsuedo(out))
+	errors.DebugBackend(1, true, DumpPsuedo(out) + "\n")
 	return
 }
 

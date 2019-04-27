@@ -44,7 +44,7 @@ main:
 		abstractSyntaxTree = $1
 
 		errors.DebugParser(1, true, "main -> program\n")
-		errors.DebugParser(2, false, "\n")
+		errors.DebugParser(1, false, "\n")
 		errors.DebugParser(2, true, backend.DumpAst($1))
 		errors.DebugParser(2, false, "\n\n")
 	}
