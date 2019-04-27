@@ -15,17 +15,22 @@ type (
 		Addr   Num
 		Params []Psuedo
 	}
-
-	Ins struct {
-		Name    string
-		Args    []Psuedo
-		Comment string
-	}
 )
 
 func (r Reg) Psuedo() {}
 func (n Num) Psuedo() {}
 func (c Cmd) Psuedo() {}
+
+type Ins struct {
+	Name    string
+	Args    []Psuedo
+	Comment string
+}
+
+func (i Ins) WithComment(comment string) Ins {
+	i.Comment = comment
+	return i
+}
 
 func (r Reg) String() string {
 	return fmt.Sprint(int(r))
@@ -45,11 +50,6 @@ func (c Cmd) String() string {
 	return b.String()
 }
 
-func (i Ins) WithComment(comment string) Ins {
-	i.Comment = comment
-	return i
-}
-
 func (i Ins) String() string {
 	var b strings.Builder
 	b.WriteString(i.Name)
@@ -59,7 +59,6 @@ func (i Ins) String() string {
 	return b.String()
 }
 
-// DEBUGGING
 func DumpPsuedo(psuedo []Ins) string {
 	var b strings.Builder
 	for i, ins := range psuedo {
