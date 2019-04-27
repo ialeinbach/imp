@@ -61,11 +61,11 @@ func init() {
 
 // Flag-configurables.
 var (
-	Help bool
+	HelpFlag bool
 )
 
 func main() {
-	if flag.NArg() == 0 || Help {
+	if flag.NArg() == 0 || HelpFlag {
 		flag.PrintDefaults()
 		os.Exit(0)
 	}

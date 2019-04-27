@@ -6,8 +6,8 @@ import (
 
 // Flag-configurables.
 var (
-	LexerVerbosity  int
-	ParserVerbosity int
+	LexerVerbosityFlag  int
+	ParserVerbosityFlag int
 )
 
 const (
@@ -16,7 +16,7 @@ const (
 )
 
 func DebugLexer(verbosity int, prefix bool, format string, a ...interface{}) {
-	if LexerVerbosity >= verbosity {
+	if LexerVerbosityFlag >= verbosity {
 		out := fmt.Sprintf(format, a...)
 		if prefix {
 			out = prefixLines(out, LexerPrefix)
@@ -26,7 +26,7 @@ func DebugLexer(verbosity int, prefix bool, format string, a ...interface{}) {
 }
 
 func DebugParser(verbosity int, prefix bool, format string, a ...interface{}) {
-	if ParserVerbosity >= verbosity {
+	if ParserVerbosityFlag >= verbosity {
 		if prefix {
 			format = prefixLines(format, ParserPrefix)
 		}

@@ -6,13 +6,13 @@ import (
 
 // Flag-configurables.
 var (
-	BackendVerbosity int
+	BackendVerbosityFlag int
 )
 
 const BackendPrefix string = "[BACKEND] "
 
 func DebugBackend(verbosity int, prefix bool, format string, a ...interface{}) {
-	if BackendVerbosity >= verbosity {
+	if BackendVerbosityFlag >= verbosity {
 		out := fmt.Sprintf(format, a...)
 		if prefix {
 			out = prefixLines(out, BackendPrefix)

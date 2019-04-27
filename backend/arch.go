@@ -7,5 +7,5 @@ var (
 
 // Flag-configurables.
 var (
-	TargetArchitecture string
+	TargetArchitectureFlag string
 )

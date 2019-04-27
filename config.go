@@ -7,36 +7,36 @@ import (
 
 func configLexerVerbosity(short, long int) {
 	if short >= long {
-		errors.LexerVerbosity = short
+		errors.LexerVerbosityFlag = short
 	} else {
-		errors.LexerVerbosity = long
+		errors.LexerVerbosityFlag = long
 	}
 }
 
 func configParserVerbosity(short, long int) {
 	if short >= long {
-		errors.ParserVerbosity = short
+		errors.ParserVerbosityFlag = short
 	} else {
-		errors.ParserVerbosity = long
+		errors.ParserVerbosityFlag = long
 	}
 }
 
 func configBackendVerbosity(short, long int) {
 	if short >= long {
-		errors.BackendVerbosity = short
+		errors.BackendVerbosityFlag = short
 	} else {
-		errors.BackendVerbosity = long
+		errors.BackendVerbosityFlag = long
 	}
 }
 
 func configTargetArchitecture(short, long string) {
 	if long == "" {
-		backend.TargetArchitecture = short
+		backend.TargetArchitectureFlag = short
 	} else {
-		backend.TargetArchitecture = long
+		backend.TargetArchitectureFlag = long
 	}
 }
 
 func configHelp(short, long bool) {
-	Help = short || long
+	HelpFlag = short || long
 }
