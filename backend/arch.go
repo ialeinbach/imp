@@ -5,6 +5,7 @@ var (
 	MaxArgCount int = 6
 )
 
-var TargetArchitectureFlag string
-
-const TargetArchitectureUsage string = "target architecture for code generation"
+// Flag-configurables.
+var (
+	TargetArchitecture string
+)
