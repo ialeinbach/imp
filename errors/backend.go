@@ -4,6 +4,23 @@ import (
 	"fmt"
 )
 
+// Flag-configurables.
+var (
+	BackendVerbosity int
+)
+
+const BackendPrefix string = "[BACKEND] "
+
+func DebugBackend(verbosity int, prefix bool, format string, a ...interface{}) {
+	if BackendVerbosity >= verbosity {
+		out := fmt.Sprintf(format, a...)
+		if prefix {
+			out = prefixLines(out, BackendPrefix)
+		}
+		fmt.Print(out)
+	}
+}
+
 func Undefined(name string) error {
 	return New(fmt.Sprintf("undefined: %s", name))
 }

@@ -3,6 +3,7 @@ package errors
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 func New(format string, a ...interface{}) error {
@@ -23,3 +24,21 @@ func Repr(rn rune) string {
 		return string(rn)
 	}
 }
+
+// Returns a string with a prefix inserted at the beginning of each line.
+func prefixLines(s, prefix string) string {
+	var b strings.Builder
+
+	for next := 0; len(s) > 0; s = s[next:] {
+		b.WriteString(prefix)
+		next = strings.IndexRune(s, '\n') + 1
+		if next == 0 {
+			b.WriteString(s)
+			break
+		}
+		b.WriteString(s[:next])
+	}
+
+	return b.String()
+}
+
