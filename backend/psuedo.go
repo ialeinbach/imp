@@ -64,7 +64,7 @@ func DumpPsuedo(psuedo []Ins) string {
 	for i, ins := range psuedo {
 		b.WriteString(fmt.Sprintf("%2d: %s", i, ins))
 		if len(ins.Comment) > 0 {
-			b.WriteString(fmt.Sprintf("\t\t# %s", ins.Comment))
+			b.WriteString(fmt.Sprintf("    # %s", ins.Comment))
 		}
 		b.WriteRune('\n')
 	}
