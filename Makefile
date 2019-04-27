@@ -1,13 +1,15 @@
 .PHONY: clean test
 
-imp: main.go frontend/parser.go
-	go build
+impc: frontend/* backend/* errors/*
+	go build -o impc
 
-frontend/parser.go: frontend/parser.y frontend/lexer.go
-	cd frontend/ && go generate && cd ..
+frontend/lexer.go: frontend/parser.go
+
+frontend/parser.go: frontend/parser.y
+	go generate -x
 
 clean:
-	$(RM) frontend/parser.go frontend/y.output imp
+	$(RM) frontend/parser.go frontend/y.output impc
 
-test: imp
-	./imp examples/*.imp
+test: impc
+	./impc examples/*.imp
