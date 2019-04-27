@@ -176,8 +176,7 @@ func GenCallEpilog(args []Psuedo) []Ins {
 	// Generate psuedo-instructions for handling dep seqs that start with
 	// numbers.
 	for _, seq := range numSeqs {
-		var i int
-		for i = 1; i < len(seq); i++ {
+		for i := 1; i < len(seq); i++ {
 			out = append(out, Ins{
 				Name: "MOVE_R",
 				Args: []Psuedo{ Reg(seq[i]), Reg(seq[i-1]) },
@@ -192,9 +191,8 @@ func GenCallEpilog(args []Psuedo) []Ins {
 	// Generate psuedo-instructions for handling dep seqs that start with
 	// registers.
 	for reg, seq := range regSeqs {
-		var i int
 		// Handle cyclic dep seqs.
-		if i = len(seq)-1; reg == seq[i] {
+		if i := len(seq)-1; reg == seq[i] {
 			out = append(out, Ins{
 				Name: "PUSH_R",
 				Args: []Psuedo{ Reg(seq[0]) },
@@ -206,7 +204,7 @@ func GenCallEpilog(args []Psuedo) []Ins {
 			})
 		}
 
-		for i = 1; i < len(seq); i++ {
+		for i := 1; i < len(seq); i++ {
 			out = append(out, Ins{
 				Name: "MOVE_R",
 				Args: []Psuedo{ Reg(seq[i]), Reg(seq[i-1]) },
