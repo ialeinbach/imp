@@ -24,6 +24,9 @@ const (
 
 	// Target Architecture: -target-architecture, -arch
 	targetArchitectureUsage string = "target architecture for code generation"
+
+	// Help: -help, -h
+	helpUsage               string = "print help information"
 )
 
 func init() {
@@ -43,17 +46,26 @@ func init() {
 	flag.StringVar(&targetArchitectureLong, "target-architechture", "", targetArchitectureUsage)
 	flag.StringVar(&targetArchitectureShort, "arch", "", targetArchitectureUsage)
 
+	var helpLong, helpShort bool
+	flag.BoolVar(&helpLong, "help", false, helpUsage)
+	flag.BoolVar(&helpShort, "h", false, helpUsage)
+
 	flag.Parse()
 
 	configLexerVerbosity(lexerVerbosityLong, lexerVerbosityShort)
 	configParserVerbosity(parserVerbosityLong, parserVerbosityShort)
 	configTargetArchitecture(targetArchitectureLong, targetArchitectureShort)
 	configBackendVerbosity(backendVerbosityLong, backendVerbosityShort)
+	configHelp(helpLong, helpShort)
 }
 
+// Flag-configurables.
+var (
+	Help bool
+)
+
 func main() {
-	if flag.NArg() == 0 {
-		errors.Print(errors.NoSourceFiles())
+	if flag.NArg() == 0 || Help {
 		flag.PrintDefaults()
 		os.Exit(0)
 	}

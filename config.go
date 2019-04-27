@@ -36,3 +36,7 @@ func configTargetArchitecture(short, long string) {
 		backend.TargetArchitecture = long
 	}
 }
+
+func configHelp(short, long bool) {
+	Help = short || long
+}

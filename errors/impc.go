@@ -16,7 +16,3 @@ func Ok(filename string) {
 func BadSourceFile(filename string, err error) error {
 	return New(fmt.Sprintf("error opening %s: %v", filename, err))
 }
-
-func NoSourceFiles() error {
-	return New("Nothing to do.")
-}
