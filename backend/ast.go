@@ -1,8 +1,7 @@
-package internal
+package backend
 
 import (
 	"encoding/json"
-	"imp/backend"
 )
 
 type (
@@ -34,7 +33,7 @@ func (c CmdAlias) Pos() int { return c.Line }
 
 type (
 	Stmt interface {
-		Gen(*[]backend.Ins, *Scope) error
+		Gen(*[]Ins, *Scope) error
 		Pos() int
 	}
 	Call struct {
@@ -51,7 +50,6 @@ type (
 func (c Call) Pos() int { return c.Cmd.Line }
 func (d Decl) Pos() int { return d.Cmd.Line }
 
-// DEBUGGING
 func DumpAst(ast []Stmt) string {
 	a, err := json.MarshalIndent(ast, "", "\t")
 	if err != nil {

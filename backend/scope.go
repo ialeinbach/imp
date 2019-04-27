@@ -1,7 +1,6 @@
-package internal
+package backend
 
 import (
-	"imp/backend"
 	"imp/errors"
 	"strings"
 	"fmt"
@@ -10,17 +9,17 @@ import (
 
 type Scope struct {
 	Name string
-	Cmds map[string]backend.Cmd
-	Regs map[string]backend.Reg
-	Nums map[string]backend.Reg
+	Cmds map[string]Cmd
+	Regs map[string]Reg
+	Nums map[string]Reg
 }
 
 func NewScope(name string) *Scope {
 	return &Scope{
 		Name: name,
-		Cmds: make(map[string]backend.Cmd),
-		Regs: make(map[string]backend.Reg),
-		Nums: make(map[string]backend.Reg),
+		Cmds: make(map[string]Cmd),
+		Regs: make(map[string]Reg),
+		Nums: make(map[string]Reg),
 	}
 }
 
@@ -51,18 +50,18 @@ func (s Scope) String() string {
 func GlobalScope() *Scope {
 	return &Scope{
 		Name: "Global",
-		Cmds: make(map[string]backend.Cmd),
-		Regs: map[string]backend.Reg{
-			"0": backend.Reg(0),
-			"1": backend.Reg(1),
-			"2": backend.Reg(2),
-			"3": backend.Reg(3),
-			"4": backend.Reg(4),
-			"5": backend.Reg(5),
-			"6": backend.Reg(6),
-			"7": backend.Reg(7),
+		Cmds: make(map[string]Cmd),
+		Regs: map[string]Reg{
+			"0": Reg(0),
+			"1": Reg(1),
+			"2": Reg(2),
+			"3": Reg(3),
+			"4": Reg(4),
+			"5": Reg(5),
+			"6": Reg(6),
+			"7": Reg(7),
 		},
-		Nums: make(map[string]backend.Reg),
+		Nums: make(map[string]Reg),
 	}
 }
 
@@ -73,15 +72,15 @@ func (d *Decl) LocalScope(name string) (*Scope, error) {
 		case CmdAlias:
 			return nil, errors.Unsupported("cmds as arguments")
 		case RegAlias:
-			local.Regs[alias.Alias()] = backend.Reg(i)
+			local.Regs[alias.Alias()] = Reg(i)
 		case NumAlias:
-			local.Nums[alias.Alias()] = backend.Reg(i)
+			local.Nums[alias.Alias()] = Reg(i)
 		}
 	}
 	return local, nil
 }
 
-func (s *Scope) Lookup(alias Alias) (backend.Psuedo, error) {
+func (s *Scope) Lookup(alias Alias) (Psuedo, error) {
 	switch alias := alias.(type) {
 	case CmdAlias:
 		if cmd, ok := s.Cmds[alias.Alias()]; ok {
@@ -95,7 +94,7 @@ func (s *Scope) Lookup(alias Alias) (backend.Psuedo, error) {
 		// Always treat parseable numbers as numbers.
 		num, err := strconv.ParseInt(alias.Alias(), 0, 0)
 		if err == nil {
-			return backend.Num(num), nil
+			return Num(num), nil
 		}
 
 		// Otherwise, check if it's a saved alias.
@@ -108,26 +107,26 @@ func (s *Scope) Lookup(alias Alias) (backend.Psuedo, error) {
 	return nil, errors.New("undefined alias: %s", alias)
 }
 
-func (s *Scope) Insert(alias Alias, psuedo backend.Psuedo) error {
+func (s *Scope) Insert(alias Alias, psuedo Psuedo) error {
 	switch alias := alias.(type) {
 	case CmdAlias:
 		switch psuedo := psuedo.(type) {
-		case backend.Cmd:
+		case Cmd:
 			delete(s.Cmds, alias.Alias())
 			s.Cmds[alias.Alias()] = psuedo
-		case backend.Reg:
+		case Reg:
 			return errors.TypeMismatch("CmdAlias", "Reg")
-		case backend.Num:
+		case Num:
 			return errors.TypeMismatch("CmdAlias", "Num")
 		}
 	case RegAlias:
 		switch psuedo := psuedo.(type) {
-		case backend.Cmd:
+		case Cmd:
 			return errors.TypeMismatch("RegAlias", "Cmd")
-		case backend.Reg:
+		case Reg:
 			delete(s.Regs, alias.Alias())
 			s.Regs[alias.Alias()] = psuedo
-		case backend.Num:
+		case Num:
 			return errors.TypeMismatch("RegAlias", "Num")
 		}
 	case NumAlias:

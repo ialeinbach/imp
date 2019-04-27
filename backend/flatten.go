@@ -1,21 +1,22 @@
-package internal
+package backend
 
 import (
-	"imp/backend"
 	"imp/errors"
 )
 
 // Wrapper for flatten().
-func Flatten(prog []Stmt) ([]backend.Ins, error) {
-	return flatten(prog, GlobalScope())
+func Flatten(prog []Stmt) (out []Ins, err error) {
+	out, err = flatten(prog, GlobalScope())
+	errors.DebugBackend(1, true, DumpPsuedo(out))
+	return
 }
 
 // Converts an AST into a flat list of psuedo-instructions.
-func flatten(prog []Stmt, local *Scope) ([]backend.Ins, error) {
-	out := make([]backend.Ins, 0)
+func flatten(prog []Stmt, local *Scope) ([]Ins, error) {
+	out := make([]Ins, 0)
 
 	var (
-		buf []backend.Ins
+		buf []Ins
 		err error
 	)
 	for _, stmt := range prog {
@@ -40,8 +41,8 @@ func flatten(prog []Stmt, local *Scope) ([]backend.Ins, error) {
 // Checks argAliases for proper typing according to params. If type checking
 // succeeds, returns slice of values associated with aliases in some local
 // scope. If params == nil, there are no type restrictions.
-func Typecheck(args []Alias, params []backend.Psuedo, local Scope) ([]backend.Psuedo, error) {
-	out := make([]backend.Psuedo, len(args))
+func Typecheck(args []Alias, params []Psuedo, local Scope) ([]Psuedo, error) {
+	out := make([]Psuedo, len(args))
 
 	// No type restrictions imposed, so just fetch values from local scope.
 	if params == nil {
@@ -66,7 +67,7 @@ func Typecheck(args []Alias, params []backend.Psuedo, local Scope) ([]backend.Ps
 	// scope.
 	for i, param := range params {
 		switch param.(type) {
-		case backend.Reg:
+		case Reg:
 			switch args[i].(type) {
 			case RegAlias:
 				psuedo, err := local.Lookup(args[i])
@@ -77,7 +78,7 @@ func Typecheck(args []Alias, params []backend.Psuedo, local Scope) ([]backend.Ps
 			default:
 				return nil, errors.TypeExpected("register")
 			}
-		case backend.Num:
+		case Num:
 			switch args[i].(type) {
 			case RegAlias, NumAlias:
 				psuedo, err := local.Lookup(args[i])
@@ -88,7 +89,7 @@ func Typecheck(args []Alias, params []backend.Psuedo, local Scope) ([]backend.Ps
 			default:
 				return nil, errors.TypeExpected("register or number")
 			}
-		case backend.Cmd:
+		case Cmd:
 			return nil, errors.Unsupported("cmds as arguments")
 		}
 	}
@@ -97,10 +98,10 @@ func Typecheck(args []Alias, params []backend.Psuedo, local Scope) ([]backend.Ps
 }
 
 // Generates psuedo-instructions for a call.
-func (c Call) Gen(out *[]backend.Ins, local *Scope) error {
+func (c Call) Gen(out *[]Ins, local *Scope) error {
 	// Look for Cmd in local scope.
 	if entry, err := local.Lookup(c.Cmd); err == nil {
-		cmd, ok := entry.(backend.Cmd)
+		cmd, ok := entry.(Cmd)
 		if !ok {
 			return errors.New("cmd lookup returned non-cmd entry")
 		}
@@ -108,12 +109,12 @@ func (c Call) Gen(out *[]backend.Ins, local *Scope) error {
 		if err != nil {
 			return err
 		}
-		*out = append(*out, backend.Call(c.Cmd.Alias(), cmd, args)...)
+		*out = append(*out, GenCall(c.Cmd.Alias(), cmd, args)...)
 		return nil
 	}
 
 	// Look for Cmd as builtin.
-	if fn, ok := backend.Builtin[c.Cmd.Alias()]; ok {
+	if fn, ok := Builtin[c.Cmd.Alias()]; ok {
 		args, err := Typecheck(c.Args, nil, *local)
 		if err != nil {
 			return err
@@ -130,23 +131,23 @@ func (c Call) Gen(out *[]backend.Ins, local *Scope) error {
 }
 
 // Generates psuedo-instructions for a declaration.
-func (d Decl) Gen(out *[]backend.Ins, local *Scope) error {
+func (d Decl) Gen(out *[]Ins, local *Scope) error {
 	// Create parameter template for type checking call arguments.
-	params := make([]backend.Psuedo, len(d.Args))
+	params := make([]Psuedo, len(d.Args))
 	for i, arg := range d.Args {
 		switch arg.(type) {
 		case RegAlias:
-			params[i] = backend.Reg(0)
+			params[i] = Reg(0)
 		case NumAlias:
-			params[i] = backend.Num(0)
+			params[i] = Num(0)
 		case CmdAlias:
 			return errors.Unsupported("cmds as arguments")
 		}
 	}
 
 	// Create entry and add to current scope.
-	cmd := backend.Cmd{
-		Addr:   backend.Num(len(*out)+1),
+	cmd := Cmd{
+		Addr:   Num(len(*out)+1),
 		Params: params,
 	}
 	err := local.Insert(d.Cmd, cmd)
@@ -165,9 +166,9 @@ func (d Decl) Gen(out *[]backend.Ins, local *Scope) error {
 	if err != nil {
 		return err
 	}
-	*out = append(*out, backend.Ins{
+	*out = append(*out, Ins{
 		Name: "JUMP_I",
-		Args: []backend.Psuedo{ backend.Num(len(body)+len(*out)+1) },
+		Args: []Psuedo{ Num(len(body)+len(*out)+1) },
 	})
 	*out = append(*out, body[0].WithComment("start of " + d.Cmd.Alias()))
 	*out = append(*out, body[1:]...)
