@@ -43,7 +43,6 @@ func init() {
 	flag.StringVar(&targetArchitectureLong, "target-architechture", "", targetArchitectureUsage)
 	flag.StringVar(&targetArchitectureShort, "arch", "", targetArchitectureUsage)
 
-
 	flag.Parse()
 
 	configLexerVerbosity(lexerVerbosityLong, lexerVerbosityShort)
