@@ -126,7 +126,7 @@ InteractLoop:
 				switch ctrl.Text() {
 				case "n", "next":
 					break InteractLoop
-				case "r", "regs", "registers":
+				case "r", "regs":
 					fmt.Println(t.dumpRegs())
 				case "s", "stack":
 					fmt.Println(t.dumpStack())
