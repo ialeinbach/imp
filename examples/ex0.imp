@@ -1,3 +1,5 @@
+mov #1, @1
+
 :f @a, @b, @c, @d {
 	mov @a, @b
 	mov @b, @c
