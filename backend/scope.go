@@ -138,7 +138,7 @@ func (s *Scope) Insert(alias Alias, psuedo Psuedo) error {
 // Checks args for proper typing according to params. If type checking succeeds,
 // returns slice of values associated with aliases in some local scope. If
 // params == nil, there are no type restrictions.
-func (s *Scope) Typecheck(args []Alias, params []Psuedo) ([]Psuedo, error) {
+func (s *Scope) typecheck(args []Alias, params []Psuedo) ([]Psuedo, error) {
 	out := make([]Psuedo, len(args))
 
 	// No type restrictions imposed, so just fetch values from local scope.

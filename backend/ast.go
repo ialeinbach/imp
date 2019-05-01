@@ -109,7 +109,7 @@ func (c call) Gen(out *[]Ins, local *Scope) (err error) {
 		if !ok {
 			return errors.New("cmd lookup returned non-cmd entry")
 		}
-		args, err := local.Typecheck(c.args, cmd.Params)
+		args, err := local.typecheck(c.args, cmd.Params)
 		if err != nil {
 			return err
 		}
@@ -119,7 +119,7 @@ func (c call) Gen(out *[]Ins, local *Scope) (err error) {
 
 	// Look for Cmd as builtin.
 	if fn, ok := Builtin[c.cmd.Alias()]; ok {
-		args, err := local.Typecheck(c.args, nil)
+		args, err := local.typecheck(c.args, nil)
 		if err != nil {
 			return err
 		}
