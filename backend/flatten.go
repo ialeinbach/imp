@@ -103,7 +103,7 @@ func (c call) Gen(out *[]Ins, local *Scope) (err error) {
 		if err != nil {
 			return err
 		}
-		*out = append(*out, GenCall(c.cmd.Alias(), cmd, args)...)
+		*out = append(*out, genProcCall(c.cmd.Alias(), cmd, args)...)
 		return nil
 	}
 

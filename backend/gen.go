@@ -1,14 +1,14 @@
 package backend
 
-func GenCall(name string, cmd Cmd, args []Psuedo) []Ins {
+func genProcCall(name string, cmd Cmd, args []Psuedo) []Ins {
 	out := []Ins{}
 
-	out = append(out, GenCallProlog(args)...)
+	out = append(out, genProcCallProlog(args)...)
 	out = append(out, Ins{
 		Name: "CALL_I",
 		Args: []Psuedo{ cmd.Addr },
 	}.WithComment("call " + name))
-	out = append(out, GenCallEpilog(args)...)
+	out = append(out, genProcCallEpilog(args)...)
 
 	return out
 }
@@ -109,7 +109,7 @@ func DepSeqs(args []Psuedo) (regSeqs map[int][]int, numSeqs map[int][]int) {
 	}
 }
 
-func GenCallProlog(args []Psuedo) []Ins {
+func genProcCallProlog(args []Psuedo) []Ins {
 	out := []Ins{}
 
 	// See DepSeqs definition for info about dependency sequences.
@@ -167,7 +167,7 @@ func GenCallProlog(args []Psuedo) []Ins {
 	return out
 }
 
-func GenCallEpilog(args []Psuedo) []Ins {
+func genProcCallEpilog(args []Psuedo) []Ins {
 	out := []Ins{}
 
 	// See DepSeqs definition for info about dependency sequences.
