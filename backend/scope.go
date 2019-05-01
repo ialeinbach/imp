@@ -134,3 +134,62 @@ func (s *Scope) Insert(alias Alias, psuedo Psuedo) error {
 	}
 	return nil
 }
+
+// Checks argAliases for proper typing according to params. If type checking
+// succeeds, returns slice of values associated with aliases in some local
+// scope. If params == nil, there are no type restrictions.
+func Typecheck(args []Alias, params []Psuedo, local Scope) ([]Psuedo, error) {
+	out := make([]Psuedo, len(args))
+
+	// No type restrictions imposed, so just fetch values from local scope.
+	if params == nil {
+		for i, arg := range args {
+			psuedo, err := local.Lookup(arg)
+			if err != nil {
+				return nil, errors.Undefined(arg.Alias())
+			}
+			out[i] = psuedo
+		}
+		return out, nil
+	}
+
+	// Check argument count.
+	if len(params) != len(args) {
+		return nil, errors.New("argument count: expected %d but found %d\n" +
+		                       "params: %v\n" +
+		                       "args:   %v\n", len(params), len(args), params, args)
+	}
+
+	// Check argument types against param types and fetch values from local
+	// scope.
+	for i, param := range params {
+		switch param.(type) {
+		case Reg:
+			switch args[i].(type) {
+			case regAlias:
+				psuedo, err := local.Lookup(args[i])
+				if err != nil {
+					return nil, errors.Undefined(args[i].Alias())
+				}
+				out[i] = psuedo
+			default:
+				return nil, errors.TypeExpected("register")
+			}
+		case Num:
+			switch args[i].(type) {
+			case regAlias, numAlias:
+				psuedo, err := local.Lookup(args[i])
+				if err != nil {
+					return nil, errors.Undefined(args[i].Alias())
+				}
+				out[i] = psuedo
+			default:
+				return nil, errors.TypeExpected("register or number")
+			}
+		case Cmd:
+			return nil, errors.Unsupported("cmds as arguments")
+		}
+	}
+
+	return out, nil
+}

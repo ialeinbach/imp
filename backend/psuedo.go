@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+//
+// Psuedo-values
+//
+
 type (
 	Psuedo interface {
 		Psuedo()
@@ -20,17 +24,6 @@ type (
 func (r Reg) Psuedo() {}
 func (n Num) Psuedo() {}
 func (c Cmd) Psuedo() {}
-
-type Ins struct {
-	Name    string
-	Args    []Psuedo
-	Comment string
-}
-
-func (i Ins) WithComment(comment string) Ins {
-	i.Comment = comment
-	return i
-}
 
 func (r Reg) String() string {
 	return fmt.Sprint(int(r))
@@ -50,6 +43,16 @@ func (c Cmd) String() string {
 	return b.String()
 }
 
+//
+// Psuedo-instructions
+//
+
+type Ins struct {
+	Name    string
+	Args    []Psuedo
+	Comment string
+}
+
 func (i Ins) String() string {
 	var b strings.Builder
 	b.WriteString(i.Name)
@@ -59,14 +62,7 @@ func (i Ins) String() string {
 	return b.String()
 }
 
-func DumpPsuedo(psuedo []Ins) string {
-	var b strings.Builder
-	for i, ins := range psuedo {
-		b.WriteString(fmt.Sprintf("%2d: %s", i, ins))
-		if len(ins.Comment) > 0 {
-			b.WriteString(fmt.Sprintf("    # %s", ins.Comment))
-		}
-		b.WriteRune('\n')
-	}
-	return b.String()
+func (i Ins) WithComment(comment string) Ins {
+	i.Comment = comment
+	return i
 }
