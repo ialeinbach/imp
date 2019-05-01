@@ -65,15 +65,15 @@ func GlobalScope() *Scope {
 	}
 }
 
-func (d *Decl) LocalScope(name string) (*Scope, error) {
+func (d *decl) LocalScope(name string) (*Scope, error) {
 	local := NewScope(name)
-	for i, alias := range d.Args {
+	for i, alias := range d.args {
 		switch alias := alias.(type) {
-		case CmdAlias:
+		case cmdAlias:
 			return nil, errors.Unsupported("cmds as arguments")
-		case RegAlias:
+		case regAlias:
 			local.Regs[alias.Alias()] = Reg(i)
-		case NumAlias:
+		case numAlias:
 			local.Nums[alias.Alias()] = Reg(i)
 		}
 	}
@@ -82,15 +82,15 @@ func (d *Decl) LocalScope(name string) (*Scope, error) {
 
 func (s *Scope) Lookup(alias Alias) (Psuedo, error) {
 	switch alias := alias.(type) {
-	case CmdAlias:
+	case cmdAlias:
 		if cmd, ok := s.Cmds[alias.Alias()]; ok {
 			return cmd, nil
 		}
-	case RegAlias:
+	case regAlias:
 		if reg, ok := s.Regs[alias.Alias()]; ok {
 			return reg, nil
 		}
-	case NumAlias:
+	case numAlias:
 		// Always treat parseable numbers as numbers.
 		num, err := strconv.ParseInt(alias.Alias(), 0, 0)
 		if err == nil {
@@ -109,7 +109,7 @@ func (s *Scope) Lookup(alias Alias) (Psuedo, error) {
 
 func (s *Scope) Insert(alias Alias, psuedo Psuedo) error {
 	switch alias := alias.(type) {
-	case CmdAlias:
+	case cmdAlias:
 		switch psuedo := psuedo.(type) {
 		case Cmd:
 			delete(s.Cmds, alias.Alias())
@@ -119,7 +119,7 @@ func (s *Scope) Insert(alias Alias, psuedo Psuedo) error {
 		case Num:
 			return errors.TypeMismatch("CmdAlias", "Num")
 		}
-	case RegAlias:
+	case regAlias:
 		switch psuedo := psuedo.(type) {
 		case Cmd:
 			return errors.TypeMismatch("RegAlias", "Cmd")
@@ -129,7 +129,7 @@ func (s *Scope) Insert(alias Alias, psuedo Psuedo) error {
 		case Num:
 			return errors.TypeMismatch("RegAlias", "Num")
 		}
-	case NumAlias:
+	case numAlias:
 		return errors.Unsupported("nums in scopes")
 	}
 	return nil

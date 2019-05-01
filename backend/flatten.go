@@ -21,15 +21,15 @@ func flatten(prog []Stmt, local *Scope) ([]Ins, error) {
 	)
 	for _, stmt := range prog {
 		switch stmt := stmt.(type) {
-		case Call:
+		case call:
 			err = stmt.Gen(&out, local)
 			if err != nil {
-				return buf, errors.New("call to %s on line %d: %s", stmt.Cmd.Alias(), stmt.Pos(), err)
+				return buf, errors.New("call to %s on line %d: %s", stmt.cmd.Alias(), stmt.Pos(), err)
 			}
-		case Decl:
+		case decl:
 			err = stmt.Gen(&out, local)
 			if err != nil {
-				return buf, errors.New("decl of %s on line %d: %s", stmt.Cmd.Alias(), stmt.Pos(), err)
+				return buf, errors.New("decl of %s on line %d: %s", stmt.cmd.Alias(), stmt.Pos(), err)
 			}
 		}
 		out = append(out, buf...)
@@ -69,7 +69,7 @@ func Typecheck(args []Alias, params []Psuedo, local Scope) ([]Psuedo, error) {
 		switch param.(type) {
 		case Reg:
 			switch args[i].(type) {
-			case RegAlias:
+			case regAlias:
 				psuedo, err := local.Lookup(args[i])
 				if err != nil {
 					return nil, errors.Undefined(args[i].Alias())
@@ -80,7 +80,7 @@ func Typecheck(args []Alias, params []Psuedo, local Scope) ([]Psuedo, error) {
 			}
 		case Num:
 			switch args[i].(type) {
-			case RegAlias, NumAlias:
+			case regAlias, numAlias:
 				psuedo, err := local.Lookup(args[i])
 				if err != nil {
 					return nil, errors.Undefined(args[i].Alias())
@@ -98,24 +98,24 @@ func Typecheck(args []Alias, params []Psuedo, local Scope) ([]Psuedo, error) {
 }
 
 // Generates psuedo-instructions for a call.
-func (c Call) Gen(out *[]Ins, local *Scope) error {
+func (c call) Gen(out *[]Ins, local *Scope) error {
 	// Look for Cmd in local scope.
-	if entry, err := local.Lookup(c.Cmd); err == nil {
+	if entry, err := local.Lookup(c.cmd); err == nil {
 		cmd, ok := entry.(Cmd)
 		if !ok {
 			return errors.New("cmd lookup returned non-cmd entry")
 		}
-		args, err := Typecheck(c.Args, cmd.Params, *local)
+		args, err := Typecheck(c.args, cmd.Params, *local)
 		if err != nil {
 			return err
 		}
-		*out = append(*out, GenCall(c.Cmd.Alias(), cmd, args)...)
+		*out = append(*out, GenCall(c.cmd.Alias(), cmd, args)...)
 		return nil
 	}
 
 	// Look for Cmd as builtin.
-	if fn, ok := Builtin[c.Cmd.Alias()]; ok {
-		args, err := Typecheck(c.Args, nil, *local)
+	if fn, ok := Builtin[c.cmd.Alias()]; ok {
+		args, err := Typecheck(c.args, nil, *local)
 		if err != nil {
 			return err
 		}
@@ -127,20 +127,20 @@ func (c Call) Gen(out *[]Ins, local *Scope) error {
 		return nil
 	}
 
-	return errors.Undefined(c.Cmd.Alias())
+	return errors.Undefined(c.cmd.Alias())
 }
 
 // Generates psuedo-instructions for a declaration.
-func (d Decl) Gen(out *[]Ins, local *Scope) error {
+func (d decl) Gen(out *[]Ins, local *Scope) error {
 	// Create parameter template for type checking call arguments.
-	params := make([]Psuedo, len(d.Args))
-	for i, arg := range d.Args {
+	params := make([]Psuedo, len(d.args))
+	for i, arg := range d.args {
 		switch arg.(type) {
-		case RegAlias:
+		case regAlias:
 			params[i] = Reg(0)
-		case NumAlias:
+		case numAlias:
 			params[i] = Num(0)
-		case CmdAlias:
+		case cmdAlias:
 			return errors.Unsupported("cmds as arguments")
 		}
 	}
@@ -150,19 +150,19 @@ func (d Decl) Gen(out *[]Ins, local *Scope) error {
 		Addr:   Num(len(*out)+1),
 		Params: params,
 	}
-	err := local.Insert(d.Cmd, cmd)
+	err := local.Insert(d.cmd, cmd)
 	if err != nil {
 		return err
 	}
 
 	// Create inner scope for declaration body.
-	inner, err := d.LocalScope(d.Cmd.Alias())
+	inner, err := d.LocalScope(d.cmd.Alias())
 	if err != nil {
 		return err
 	}
 
 	// Generate psuedo-instructions for declaration body.
-	body, err := flatten(d.Body, inner)
+	body, err := flatten(d.body, inner)
 	if err != nil {
 		return err
 	}
@@ -170,7 +170,7 @@ func (d Decl) Gen(out *[]Ins, local *Scope) error {
 		Name: "JUMP_I",
 		Args: []Psuedo{ Num(len(body)+len(*out)+1) },
 	})
-	*out = append(*out, body[0].WithComment("start of " + d.Cmd.Alias()))
+	*out = append(*out, body[0].WithComment("start of " + d.cmd.Alias()))
 	*out = append(*out, body[1:]...)
 	return nil
 }

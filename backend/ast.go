@@ -9,46 +9,82 @@ type (
 		Alias() string
 		Pos()  int
 	}
-	RegAlias struct {
-		Name string
-		Line int
+	regAlias struct {
+		name string
+		line int
 	}
-	NumAlias struct {
-		Name string
-		Line int
+	numAlias struct {
+		name string
+		line int
 	}
-	CmdAlias struct {
-		Name string
-		Line int
+	cmdAlias struct {
+		name string
+		line int
 	}
 )
 
-func (r RegAlias) Alias() string { return r.Name }
-func (n NumAlias) Alias() string { return n.Name }
-func (c CmdAlias) Alias() string { return c.Name }
+func (r regAlias) Alias() string { return r.name }
+func (n numAlias) Alias() string { return n.name }
+func (c cmdAlias) Alias() string { return c.name }
 
-func (r RegAlias) Pos() int { return r.Line }
-func (n NumAlias) Pos() int { return n.Line }
-func (c CmdAlias) Pos() int { return c.Line }
+func (r regAlias) Pos() int { return r.line }
+func (n numAlias) Pos() int { return n.line }
+func (c cmdAlias) Pos() int { return c.line }
+
+func RegAlias(name string, line int) regAlias {
+	return regAlias{
+		name: name,
+		line: line,
+	}
+}
+
+func NumAlias(name string, line int) numAlias {
+	return numAlias{
+		name: name,
+		line: line,
+	}
+}
+
+func CmdAlias(name string, line int) cmdAlias {
+	return cmdAlias{
+		name: name,
+		line: line,
+	}
+}
 
 type (
 	Stmt interface {
 		Gen(*[]Ins, *Scope) error
 		Pos() int
 	}
-	Call struct {
-		Cmd  CmdAlias
-		Args []Alias
+	call struct {
+		cmd  cmdAlias
+		args []Alias
 	}
-	Decl struct {
-		Cmd  CmdAlias
-		Args []Alias
-		Body []Stmt
+	decl struct {
+		cmd  cmdAlias
+		args []Alias
+		body []Stmt
 	}
 )
 
-func (c Call) Pos() int { return c.Cmd.Line }
-func (d Decl) Pos() int { return d.Cmd.Line }
+func (c call) Pos() int { return c.cmd.Pos() }
+func (d decl) Pos() int { return d.cmd.Pos() }
+
+func Call(cmd cmdAlias, args []Alias) Stmt {
+	return Stmt(call{
+		cmd:  cmd,
+		args: args,
+	})
+}
+
+func Decl(cmd cmdAlias, args []Alias, body []Stmt) Stmt {
+	return Stmt(decl{
+		cmd:  cmd,
+		args: args,
+		body: body,
+	})
+}
 
 func DumpAst(ast []Stmt) string {
 	a, err := json.MarshalIndent(ast, "", "\t")

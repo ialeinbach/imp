@@ -73,30 +73,17 @@ stmt:
 
 decl:
 	':' CMD args '{' delim program '}' {
-		$$ = []backend.Stmt{backend.Stmt(
-			backend.Decl{
-				Cmd: backend.CmdAlias{
-					Name: $2.Lexeme,
-					Line: $2.Line,
-				},
-				Args: $3,
-				Body: $6,
-			},
-		)}
+		cmd := backend.CmdAlias($2.Lexeme, $2.Line)
+		decl := backend.Decl(cmd, $3, $6)
+		$$ = []backend.Stmt{decl}
 		errors.DebugParser(1, true, "decl -> :CMD args delim { program }\n")
 	}
 
 call:
 	CMD args {
-		$$ = []backend.Stmt{backend.Stmt(
-			backend.Call{
-				Cmd: backend.CmdAlias{
-					Name: $1.Lexeme,
-					Line: $1.Line,
-				},
-				Args: $2,
-			},
-		)}
+		cmd := backend.CmdAlias($1.Lexeme, $1.Line)
+		call := backend.Call(cmd, $2)
+		$$ = []backend.Stmt{call}
 		errors.DebugParser(1, true, "call -> CMD args\n")
 	}
 
@@ -118,22 +105,14 @@ args:
 
 arg:
 	REG {
-		$$ = []backend.Alias{backend.Alias(
-			backend.RegAlias{
-				Name: $1.Lexeme,
-				Line: $1.Line,
-			},
-		)}
+		reg := backend.RegAlias($1.Lexeme, $1.Line)
+		$$ = []backend.Alias{reg}
 		errors.DebugParser(1, true, "arg -> REG\n")
 	}
 |
 	NUM {
-		$$ = []backend.Alias{backend.Alias(
-			backend.NumAlias{
-				Name: $1.Lexeme,
-				Line: $1.Line,
-			},
-		)}
+		num := backend.NumAlias($1.Lexeme, $1.Line)
+		$$ = []backend.Alias{num}
 		errors.DebugParser(1, true, "arg -> NUM\n")
 	}
 
