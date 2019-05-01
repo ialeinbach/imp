@@ -12,30 +12,17 @@ func Flatten(prog []Stmt) (out []Ins, err error) {
 }
 
 // Converts an AST into a flat list of psuedo-instructions.
-func flatten(prog []Stmt, local *Scope) ([]Ins, error) {
-	out := make([]Ins, 0)
+func flatten(prog []Stmt, local *Scope) (out []Ins, err error) {
+	out = []Ins{}
 
-	var (
-		buf []Ins
-		err error
-	)
 	for _, stmt := range prog {
-		switch stmt := stmt.(type) {
-		case call:
-			err = stmt.Gen(&out, local)
-			if err != nil {
-				return buf, errors.New("call to %s on line %d: %s", stmt.cmd.Alias(), stmt.Pos(), err)
-			}
-		case decl:
-			err = stmt.Gen(&out, local)
-			if err != nil {
-				return buf, errors.New("decl of %s on line %d: %s", stmt.cmd.Alias(), stmt.Pos(), err)
-			}
+		err = stmt.Gen(&out, local)
+		if err != nil {
+			return
 		}
-		out = append(out, buf...)
 	}
 
-	return out, nil
+	return
 }
 
 // Checks argAliases for proper typing according to params. If type checking
