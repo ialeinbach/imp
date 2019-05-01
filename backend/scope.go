@@ -135,16 +135,16 @@ func (s *Scope) Insert(alias Alias, psuedo Psuedo) error {
 	return nil
 }
 
-// Checks argAliases for proper typing according to params. If type checking
-// succeeds, returns slice of values associated with aliases in some local
-// scope. If params == nil, there are no type restrictions.
-func Typecheck(args []Alias, params []Psuedo, local Scope) ([]Psuedo, error) {
+// Checks args for proper typing according to params. If type checking succeeds,
+// returns slice of values associated with aliases in some local scope. If
+// params == nil, there are no type restrictions.
+func (s *Scope) Typecheck(args []Alias, params []Psuedo) ([]Psuedo, error) {
 	out := make([]Psuedo, len(args))
 
 	// No type restrictions imposed, so just fetch values from local scope.
 	if params == nil {
 		for i, arg := range args {
-			psuedo, err := local.Lookup(arg)
+			psuedo, err := s.Lookup(arg)
 			if err != nil {
 				return nil, errors.Undefined(arg.Alias())
 			}
@@ -167,7 +167,7 @@ func Typecheck(args []Alias, params []Psuedo, local Scope) ([]Psuedo, error) {
 		case Reg:
 			switch args[i].(type) {
 			case regAlias:
-				psuedo, err := local.Lookup(args[i])
+				psuedo, err := s.Lookup(args[i])
 				if err != nil {
 					return nil, errors.Undefined(args[i].Alias())
 				}
@@ -178,7 +178,7 @@ func Typecheck(args []Alias, params []Psuedo, local Scope) ([]Psuedo, error) {
 		case Num:
 			switch args[i].(type) {
 			case regAlias, numAlias:
-				psuedo, err := local.Lookup(args[i])
+				psuedo, err := s.Lookup(args[i])
 				if err != nil {
 					return nil, errors.Undefined(args[i].Alias())
 				}
