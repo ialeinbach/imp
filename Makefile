@@ -14,7 +14,12 @@ frontend/parser.go: frontend/parser.y
 	go generate -x
 
 test: imp
-	./imp examples/*.imp
+	@echo ""
+	@echo "Compiling Examples"
+	@echo "=================="
+	@./imp examples/*.imp
+	@echo ""
+	$(MAKE) clean
 
 clean:
 	$(RM) frontend/parser.go frontend/y.output imp twerp
