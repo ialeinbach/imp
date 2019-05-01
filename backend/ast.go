@@ -167,7 +167,7 @@ func (d decl) Gen(out *[]Ins, local *Scope) (err error) {
 	}
 
 	// Create inner scope for declaration body.
-	inner, err := d.LocalScope(d.cmd.Alias())
+	inner, err := LocalScope(d)
 	if err != nil {
 		return err
 	}

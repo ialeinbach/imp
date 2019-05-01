@@ -65,9 +65,9 @@ func GlobalScope() *Scope {
 	}
 }
 
-func (d *decl) LocalScope(name string) (*Scope, error) {
-	local := NewScope(name)
-	for i, alias := range d.args {
+func LocalScope(context decl) (*Scope, error) {
+	local := NewScope(context.cmd.Alias())
+	for i, alias := range context.args {
 		switch alias := alias.(type) {
 		case cmdAlias:
 			return nil, errors.Unsupported("cmds as arguments")
