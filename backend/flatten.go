@@ -85,7 +85,14 @@ func Typecheck(args []Alias, params []Psuedo, local Scope) ([]Psuedo, error) {
 }
 
 // Generates psuedo-instructions for a call.
-func (c call) Gen(out *[]Ins, local *Scope) error {
+func (c call) Gen(out *[]Ins, local *Scope) (err error) {
+	defer func() {
+		if err != nil {
+			err = errors.New("call to %s on line %d: %s", c.cmd.Alias(), c.Pos(), err)
+		}
+		return
+	}()
+
 	// Look for Cmd in local scope.
 	if entry, err := local.Lookup(c.cmd); err == nil {
 		cmd, ok := entry.(Cmd)
@@ -118,7 +125,14 @@ func (c call) Gen(out *[]Ins, local *Scope) error {
 }
 
 // Generates psuedo-instructions for a declaration.
-func (d decl) Gen(out *[]Ins, local *Scope) error {
+func (d decl) Gen(out *[]Ins, local *Scope) (err error) {
+	defer func() {
+		if err != nil {
+			err = errors.New("decl of %s on line %d: %s", d.cmd.Alias(), d.Pos(), err)
+		}
+		return
+	}()
+
 	// Create parameter template for type checking call arguments.
 	params := make([]Psuedo, len(d.args))
 	for i, arg := range d.args {
@@ -137,7 +151,7 @@ func (d decl) Gen(out *[]Ins, local *Scope) error {
 		Addr:   Num(len(*out)+1),
 		Params: params,
 	}
-	err := local.Insert(d.cmd, cmd)
+	err = local.Insert(d.cmd, cmd)
 	if err != nil {
 		return err
 	}
