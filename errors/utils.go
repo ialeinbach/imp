@@ -26,7 +26,7 @@ func Repr(rn rune) string {
 }
 
 // Returns a string with a prefix inserted at the beginning of each line.
-func prefixLines(s, prefix string) string {
+func PrefixLines(s, prefix string) string {
 	var b strings.Builder
 
 	for next := 0; len(s) > 0; s = s[next:] {

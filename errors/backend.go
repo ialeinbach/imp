@@ -15,7 +15,7 @@ func DebugBackend(verbosity int, prefix bool, format string, a ...interface{}) {
 	if BackendVerbosityFlag >= verbosity {
 		out := fmt.Sprintf(format, a...)
 		if prefix {
-			out = prefixLines(out, BackendPrefix)
+			out = PrefixLines(out, BackendPrefix)
 		}
 		fmt.Print(out)
 	}

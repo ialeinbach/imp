@@ -19,7 +19,7 @@ func DebugLexer(verbosity int, prefix bool, format string, a ...interface{}) {
 	if LexerVerbosityFlag >= verbosity {
 		out := fmt.Sprintf(format, a...)
 		if prefix {
-			out = prefixLines(out, LexerPrefix)
+			out = PrefixLines(out, LexerPrefix)
 		}
 		fmt.Print(out)
 	}
@@ -27,10 +27,11 @@ func DebugLexer(verbosity int, prefix bool, format string, a ...interface{}) {
 
 func DebugParser(verbosity int, prefix bool, format string, a ...interface{}) {
 	if ParserVerbosityFlag >= verbosity {
+		out := fmt.Sprintf(format, a...)
 		if prefix {
-			format = prefixLines(format, ParserPrefix)
+			out = PrefixLines(out, ParserPrefix)
 		}
-		fmt.Printf(format, a...)
+		fmt.Print(out)
 	}
 }
 
