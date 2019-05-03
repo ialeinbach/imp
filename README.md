@@ -18,7 +18,7 @@ Control flow is implemented in a recursive style. There are two special builtins
 
 * Prevent integer parameters whose alias can be interpreted as a number (i.e. #123 as a parameter).
 * Add full ret/rec functionality.
-* Maybe require a "main" procedure to be used as an entry point?
+* Require a "main" procedure to be used as an entry point.
 * Maybe define a return register a la x86 and rax?
 * Decide how to and implement plug-and-play target architectures.
 * Tidy error handling.
@@ -26,3 +26,4 @@ Control flow is implemented in a recursive style. There are two special builtins
 * Optimize reg X passed as arg X to produce no psuedo-instructions (see examples/test3.imp).
 * Get `go install` working for repo.
 * Read unicode point by unicode point rather than byte by byte.
+* Add comments. Maybe parentheses? No line comment?

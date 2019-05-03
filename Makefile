@@ -22,4 +22,5 @@ test: imp
 	$(MAKE) clean
 
 clean:
-	$(RM) frontend/parser.go frontend/y.output imp twerp
+	$(RM) frontend/parser.go frontend/y.output
+	$(RM) imp twerp
