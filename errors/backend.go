@@ -30,13 +30,15 @@ func Unsupported(feature string) error {
 }
 
 func TypeMismatch(expected, found interface{Type() string}) error {
-	return New(fmt.Sprintf("" +
-		"type mismatch: expected %s but found %s" +
-	"", expected.Type(), found.Type()))
+	return New(fmt.Sprintf(
+		"type mismatch: expected %s but found %s",
+		expected.Type(), found.Type(),
+	))
 }
 
 func CountMismatch(expected, found int) error {
-	return New(fmt.Sprintf("" +
-		"count mismatch: expected %d but found %d" +
-	"", expected, found))
+	return New(fmt.Sprintf(
+		"count mismatch: expected %d but found %d",
+		expected, found,
+	))
 }

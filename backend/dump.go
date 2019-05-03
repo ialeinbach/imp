@@ -11,17 +11,14 @@ func indent(s string) string {
 }
 
 func DumpArg(arg Alias) string {
-	var typ string
-	switch arg.(type) {
-	case regAlias: typ = "regAlias"
-	case numAlias: typ = "numAlias"
-	case cmdAlias: typ = "cmdAlias"
-	}
-	return fmt.Sprintf("" +
+	return fmt.Sprintf(
 		"name: \"%s\"\n" +
 		"type: %s\n" +
-		"line: %d\n" +
-	"", arg, typ, arg.Pos())
+		"line: %d\n",
+		arg,
+		arg.Type(),
+		arg.Pos(),
+	)
 }
 
 func DumpArgs(args []Alias) string {
@@ -45,20 +42,29 @@ func DumpArgs(args []Alias) string {
 func DumpStmt(stmt Stmt) string {
 	switch stmt := stmt.(type) {
 	case call:
-		return fmt.Sprintf("" +
+		return fmt.Sprintf(
 			"name: \"%s\"\n" +
-			"type: call\n" +
+			"type: %s\n" +
 			"line: %d\n" +
-			"args: [%s]\n" +
-		"", stmt, stmt.Pos(), indent(DumpArgs(stmt.args)))
+			"args: [%s]\n",
+			stmt,
+			stmt.Type(),
+			stmt.Pos(),
+			indent(DumpArgs(stmt.args)),
+		)
 	case decl:
-		return fmt.Sprintf("" +
+		return fmt.Sprintf(
 			"name: \"%s\"\n" +
-			"type: decl\n" +
+			"type: %s\n" +
 			"line: %d\n" +
 			"params: [%s]\n" +
-			"body: [\n%s]\n" +
-		"", stmt, stmt.Pos(), indent(DumpArgs(stmt.args)), indent(DumpAst(stmt.body)))
+			"body: [\n%s]\n",
+			stmt,
+			stmt.Type(),
+			stmt.Pos(),
+			indent(DumpArgs(stmt.args)),
+			indent(DumpAst(stmt.body)),
+		)
 	}
 	return ""
 }
@@ -81,7 +87,7 @@ func DumpPsuedo(psuedo []Ins) string {
 		if len(ins.Comment) > 0 {
 			b.WriteString(fmt.Sprintf("    # %s", ins.Comment))
 		}
-		b.WriteRune('\n')
+		b.WriteString("\n")
 	}
 	if out := b.String(); len(out) > 0 {
 		return out[:len(out)-1]
