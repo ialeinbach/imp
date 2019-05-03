@@ -75,6 +75,7 @@ type (
 		Stmt()
 		Gen(*[]Ins, *Scope) error
 		String() string
+		Type() string
 		Pos() int
 	}
 	call struct {
@@ -111,6 +112,9 @@ func (d decl) Pos() int { return d.cmd.Pos() }
 
 func (c call) String() string { return c.cmd.String() }
 func (d decl) String() string { return d.cmd.String() }
+
+func (c call) Type() string { return "Call" }
+func (d decl) Type() string { return "Decl" }
 
 //
 // Code Generation
