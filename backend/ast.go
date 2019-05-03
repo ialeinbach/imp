@@ -10,7 +10,8 @@ import (
 
 type (
 	Alias interface {
-		Alias() string
+		Alias()
+		String() string
 		Pos()  int
 	}
 	regAlias struct {
@@ -48,9 +49,13 @@ func CmdAlias(name string, line int) cmdAlias {
 	}
 }
 
-func (r regAlias) Alias() string { return r.name }
-func (n numAlias) Alias() string { return n.name }
-func (c cmdAlias) Alias() string { return c.name }
+func (r regAlias) Alias() {}
+func (n numAlias) Alias() {}
+func (c cmdAlias) Alias() {}
+
+func (r regAlias) String() string { return r.name }
+func (n numAlias) String() string { return n.name }
+func (c cmdAlias) String() string { return c.name }
 
 func (r regAlias) Pos() int { return r.line }
 func (n numAlias) Pos() int { return n.line }
@@ -62,7 +67,9 @@ func (c cmdAlias) Pos() int { return c.line }
 
 type (
 	Stmt interface {
+		Stmt()
 		Gen(*[]Ins, *Scope) error
+		String() string
 		Pos() int
 	}
 	call struct {
@@ -91,14 +98,24 @@ func Decl(cmd cmdAlias, args []Alias, body []Stmt) Stmt {
 	})
 }
 
+func (c call) Stmt() {}
+func (d decl) Stmt() {}
+
 func (c call) Pos() int { return c.cmd.Pos() }
 func (d decl) Pos() int { return d.cmd.Pos() }
+
+func (c call) String() string { return c.cmd.String() }
+func (d decl) String() string { return d.cmd.String() }
+
+//
+// Code Generation
+//
 
 // Generates psuedo-instructions for a call.
 func (c call) Gen(out *[]Ins, local *Scope) (err error) {
 	defer func() {
 		if err != nil {
-			err = errors.New("call to %s on line %d: %s", c.cmd.Alias(), c.Pos(), err)
+			err = errors.New("call to %s on line %d: %s", c, c.Pos(), err)
 		}
 		return
 	}()
@@ -113,12 +130,12 @@ func (c call) Gen(out *[]Ins, local *Scope) (err error) {
 		if err != nil {
 			return err
 		}
-		*out = append(*out, genProcCall(c.cmd.Alias(), cmd, args)...)
+		*out = append(*out, genProcCall(c.cmd.String(), cmd, args)...)
 		return nil
 	}
 
 	// Look for Cmd as builtin.
-	if fn, ok := Builtin[c.cmd.Alias()]; ok {
+	if fn, ok := Builtin[c.cmd.String()]; ok {
 		args, err := local.typecheck(c.args, nil)
 		if err != nil {
 			return err
@@ -131,14 +148,14 @@ func (c call) Gen(out *[]Ins, local *Scope) (err error) {
 		return nil
 	}
 
-	return errors.Undefined(c.cmd.Alias())
+	return errors.Undefined(c.cmd.String())
 }
 
 // Generates psuedo-instructions for a declaration.
 func (d decl) Gen(out *[]Ins, local *Scope) (err error) {
 	defer func() {
 		if err != nil {
-			err = errors.New("decl of %s on line %d: %s", d.cmd.Alias(), d.Pos(), err)
+			err = errors.New("decl of %s on line %d: %s", d, d.Pos(), err)
 		}
 		return
 	}()
@@ -181,7 +198,7 @@ func (d decl) Gen(out *[]Ins, local *Scope) (err error) {
 		Name: "JUMP_I",
 		Args: []Psuedo{ Num(len(body)+len(*out)+1) },
 	})
-	*out = append(*out, body[0].WithComment("start of " + d.cmd.Alias()))
+	*out = append(*out, body[0].WithComment("start of %s", d))
 	*out = append(*out, body[1:]...)
 	return nil
 }

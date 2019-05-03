@@ -66,15 +66,15 @@ func GlobalScope() *Scope {
 }
 
 func LocalScope(context decl) (*Scope, error) {
-	local := NewScope(context.cmd.Alias())
+	local := NewScope(context.cmd.String())
 	for i, alias := range context.args {
 		switch alias := alias.(type) {
 		case cmdAlias:
 			return nil, errors.Unsupported("cmds as arguments")
 		case regAlias:
-			local.Regs[alias.Alias()] = Reg(i)
+			local.Regs[alias.String()] = Reg(i)
 		case numAlias:
-			local.Nums[alias.Alias()] = Reg(i)
+			local.Nums[alias.String()] = Reg(i)
 		}
 	}
 	return local, nil
@@ -83,22 +83,22 @@ func LocalScope(context decl) (*Scope, error) {
 func (s *Scope) Lookup(alias Alias) (Psuedo, error) {
 	switch alias := alias.(type) {
 	case cmdAlias:
-		if cmd, ok := s.Cmds[alias.Alias()]; ok {
+		if cmd, ok := s.Cmds[alias.String()]; ok {
 			return cmd, nil
 		}
 	case regAlias:
-		if reg, ok := s.Regs[alias.Alias()]; ok {
+		if reg, ok := s.Regs[alias.String()]; ok {
 			return reg, nil
 		}
 	case numAlias:
 		// Always treat parseable numbers as numbers.
-		num, err := strconv.ParseInt(alias.Alias(), 0, 0)
+		num, err := strconv.ParseInt(alias.String(), 0, 0)
 		if err == nil {
 			return Num(num), nil
 		}
 
 		// Otherwise, check if it's a saved alias.
-		if reg, ok := s.Nums[alias.Alias()]; ok {
+		if reg, ok := s.Nums[alias.String()]; ok {
 			return reg, nil
 		}
 	default:
@@ -112,8 +112,8 @@ func (s *Scope) Insert(alias Alias, psuedo Psuedo) error {
 	case cmdAlias:
 		switch psuedo := psuedo.(type) {
 		case Cmd:
-			delete(s.Cmds, alias.Alias())
-			s.Cmds[alias.Alias()] = psuedo
+			delete(s.Cmds, alias.String())
+			s.Cmds[alias.String()] = psuedo
 		case Reg:
 			return errors.TypeMismatch("CmdAlias", "Reg")
 		case Num:
@@ -124,8 +124,8 @@ func (s *Scope) Insert(alias Alias, psuedo Psuedo) error {
 		case Cmd:
 			return errors.TypeMismatch("RegAlias", "Cmd")
 		case Reg:
-			delete(s.Regs, alias.Alias())
-			s.Regs[alias.Alias()] = psuedo
+			delete(s.Regs, alias.String())
+			s.Regs[alias.String()] = psuedo
 		case Num:
 			return errors.TypeMismatch("RegAlias", "Num")
 		}
@@ -146,7 +146,7 @@ func (s *Scope) typecheck(args []Alias, params []Psuedo) ([]Psuedo, error) {
 		for i, arg := range args {
 			psuedo, err := s.Lookup(arg)
 			if err != nil {
-				return nil, errors.Undefined(arg.Alias())
+				return nil, errors.Undefined(arg.String())
 			}
 			out[i] = psuedo
 		}
@@ -169,7 +169,7 @@ func (s *Scope) typecheck(args []Alias, params []Psuedo) ([]Psuedo, error) {
 			case regAlias:
 				psuedo, err := s.Lookup(args[i])
 				if err != nil {
-					return nil, errors.Undefined(args[i].Alias())
+					return nil, errors.Undefined(args[i].String())
 				}
 				out[i] = psuedo
 			default:
@@ -180,7 +180,7 @@ func (s *Scope) typecheck(args []Alias, params []Psuedo) ([]Psuedo, error) {
 			case regAlias, numAlias:
 				psuedo, err := s.Lookup(args[i])
 				if err != nil {
-					return nil, errors.Undefined(args[i].Alias())
+					return nil, errors.Undefined(args[i].String())
 				}
 				out[i] = psuedo
 			default:
