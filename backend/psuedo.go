@@ -62,7 +62,7 @@ func (i Ins) String() string {
 	return b.String()
 }
 
-func (i Ins) WithComment(comment string) Ins {
-	i.Comment = comment
+func (i Ins) WithComment(format string, a ...interface{}) Ins {
+	i.Comment = fmt.Sprintf(format, a...)
 	return i
 }
