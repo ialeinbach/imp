@@ -1,0 +1,21 @@
+
+(hello)
+:n @a, @b {
+	:m @c, @d {
+		:o @e, @f {
+			:p @g, @h {
+				mov @g, @h
+				ret
+			}
+			p @e, @f
+			ret
+		}
+		o @c, @d
+		ret
+	}
+	m @a, @b
+	ret
+}
+
+mov #1, @0
+n @0, @1
