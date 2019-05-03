@@ -15,7 +15,7 @@ func Parse(input string) ([]backend.Stmt, error) {
 	l := Lexer(input)
 	yyParse(l)
 	if l.err != nil {
-		return nil, l.err
+		return nil, errors.Line(l.line, l.err)
 	}
 	return abstractSyntaxTree, nil
 }
