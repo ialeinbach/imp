@@ -11,7 +11,8 @@ import (
 // Wraps flatten() and drops in the global scope.
 func Flatten(prog []Stmt) ([]Ins, error) {
 	out, err := flatten(prog, GlobalScope())
-	errors.DebugBackend(1, true, DumpPsuedo(out) + "\n")
+	errors.DebugBackend(1, true, DumpPsuedo(out))
+	errors.DebugBackend(1, false, "\n\n")
 	return out, err
 }
 
