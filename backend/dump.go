@@ -83,6 +83,9 @@ func DumpPsuedo(psuedo []Ins) string {
 		}
 		b.WriteRune('\n')
 	}
-	out := b.String()
-	return out[:len(out)-1]
+	if out := b.String(); len(out) > 0 {
+		return out[:len(out)-1]
+	} else {
+		return out
+	}
 }
