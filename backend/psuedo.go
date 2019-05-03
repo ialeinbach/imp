@@ -12,6 +12,7 @@ import (
 type (
 	Psuedo interface {
 		Psuedo()
+		Type() string
 	}
 	Reg int
 	Num int64
@@ -24,6 +25,10 @@ type (
 func (r Reg) Psuedo() {}
 func (n Num) Psuedo() {}
 func (c Cmd) Psuedo() {}
+
+func (r Reg) Type() string { return "Reg" }
+func (n Num) Type() string { return "Num" }
+func (c Cmd) Type() string { return "Cmd" }
 
 func (r Reg) String() string {
 	return fmt.Sprint(int(r))

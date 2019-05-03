@@ -21,22 +21,22 @@ func DebugBackend(verbosity int, prefix bool, format string, a ...interface{}) {
 	}
 }
 
-func Undefined(name string) error {
-	return New(fmt.Sprintf("undefined: %s", name))
+func Undefined(v interface{String() string}) error {
+	return New(fmt.Sprintf("undefined: %s", v))
 }
 
 func Unsupported(feature string) error {
 	return New(fmt.Sprintf("unsupported feature: %s", feature))
 }
 
-func TypeExpected(expected string) error {
-	return New(fmt.Sprintf("type expected: %s", expected))
-}
-
-func TypeMismatch(expected, found string) error {
-	return New(fmt.Sprintf("type mismatch: expected %s but found %s", expected, found))
+func TypeMismatch(expected, found interface{Type() string}) error {
+	return New(fmt.Sprintf("" +
+		"type mismatch: expected %s but found %s" +
+	"", expected.Type(), found.Type()))
 }
 
 func CountMismatch(expected, found int) error {
-	return New(fmt.Sprintf("count mismatch: expected %d but found %d", expected, found))
+	return New(fmt.Sprintf("" +
+		"count mismatch: expected %d but found %d" +
+	"", expected, found))
 }

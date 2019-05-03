@@ -104,7 +104,7 @@ func (s *Scope) Lookup(alias Alias) (Psuedo, error) {
 	default:
 		return nil, errors.New("unrecognized alias type: %t", alias)
 	}
-	return nil, errors.New("undefined alias: %s", alias)
+	return nil, errors.Undefined(alias)
 }
 
 func (s *Scope) Insert(alias Alias, psuedo Psuedo) error {
@@ -115,19 +115,19 @@ func (s *Scope) Insert(alias Alias, psuedo Psuedo) error {
 			delete(s.Cmds, alias.String())
 			s.Cmds[alias.String()] = psuedo
 		case Reg:
-			return errors.TypeMismatch("CmdAlias", "Reg")
+			return errors.TypeMismatch(alias, psuedo)
 		case Num:
-			return errors.TypeMismatch("CmdAlias", "Num")
+			return errors.TypeMismatch(alias, psuedo)
 		}
 	case regAlias:
 		switch psuedo := psuedo.(type) {
 		case Cmd:
-			return errors.TypeMismatch("RegAlias", "Cmd")
+			return errors.TypeMismatch(alias, psuedo)
 		case Reg:
 			delete(s.Regs, alias.String())
 			s.Regs[alias.String()] = psuedo
 		case Num:
-			return errors.TypeMismatch("RegAlias", "Num")
+			return errors.TypeMismatch(alias, psuedo)
 		}
 	case numAlias:
 		return errors.Unsupported("nums in scopes")
@@ -146,7 +146,7 @@ func (s *Scope) typecheck(args []Alias, params []Psuedo) ([]Psuedo, error) {
 		for i, arg := range args {
 			psuedo, err := s.Lookup(arg)
 			if err != nil {
-				return nil, errors.Undefined(arg.String())
+				return nil, errors.Undefined(arg)
 			}
 			out[i] = psuedo
 		}
@@ -163,28 +163,28 @@ func (s *Scope) typecheck(args []Alias, params []Psuedo) ([]Psuedo, error) {
 	// Check argument types against param types and fetch values from local
 	// scope.
 	for i, param := range params {
-		switch param.(type) {
+		switch param := param.(type) {
 		case Reg:
-			switch args[i].(type) {
+			switch arg := args[i].(type) {
 			case regAlias:
-				psuedo, err := s.Lookup(args[i])
+				psuedo, err := s.Lookup(arg)
 				if err != nil {
-					return nil, errors.Undefined(args[i].String())
+					return nil, errors.Undefined(arg)
 				}
 				out[i] = psuedo
 			default:
-				return nil, errors.TypeExpected("register")
+				return nil, errors.TypeMismatch(param, arg)
 			}
 		case Num:
-			switch args[i].(type) {
+			switch arg := args[i].(type) {
 			case regAlias, numAlias:
 				psuedo, err := s.Lookup(args[i])
 				if err != nil {
-					return nil, errors.Undefined(args[i].String())
+					return nil, errors.Undefined(arg)
 				}
 				out[i] = psuedo
 			default:
-				return nil, errors.TypeExpected("register or number")
+				return nil, errors.TypeMismatch(param, arg)
 			}
 		case Cmd:
 			return nil, errors.Unsupported("cmds as arguments")

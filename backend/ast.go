@@ -12,6 +12,7 @@ type (
 	Alias interface {
 		Alias()
 		String() string
+		Type() string
 		Pos()  int
 	}
 	regAlias struct {
@@ -56,6 +57,10 @@ func (c cmdAlias) Alias() {}
 func (r regAlias) String() string { return r.name }
 func (n numAlias) String() string { return n.name }
 func (c cmdAlias) String() string { return c.name }
+
+func (r regAlias) Type() string { return "RegAlias" }
+func (n numAlias) Type() string { return "NumAlias" }
+func (c cmdAlias) Type() string { return "CmdAlias" }
 
 func (r regAlias) Pos() int { return r.line }
 func (n numAlias) Pos() int { return n.line }
@@ -130,12 +135,12 @@ func (c call) Gen(out *[]Ins, local *Scope) (err error) {
 		if err != nil {
 			return err
 		}
-		*out = append(*out, genProcCall(c.cmd.String(), cmd, args)...)
+		*out = append(*out, genProcCall(c.String(), cmd, args)...)
 		return nil
 	}
 
 	// Look for Cmd as builtin.
-	if fn, ok := Builtin[c.cmd.String()]; ok {
+	if fn, ok := Builtin[c.String()]; ok {
 		args, err := local.typecheck(c.args, nil)
 		if err != nil {
 			return err
@@ -148,7 +153,7 @@ func (c call) Gen(out *[]Ins, local *Scope) (err error) {
 		return nil
 	}
 
-	return errors.Undefined(c.cmd.String())
+	return errors.Undefined(c)
 }
 
 // Generates psuedo-instructions for a declaration.
