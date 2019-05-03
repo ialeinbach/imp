@@ -31,7 +31,7 @@ func Unsupported(feature string) error {
 
 func TypeMismatch(expected, found interface{Type() string}) error {
 	return New(fmt.Sprintf(
-		"type mismatch: expected %s but found %s",
+		"type mismatch: can't get %s from %s",
 		expected.Type(), found.Type(),
 	))
 }
