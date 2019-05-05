@@ -4,14 +4,13 @@ package frontend
 
 import (
 	"imp/errors"
-	"imp/backend"
 )
 
 // yyParse can only return an int. Final grammar rule places AST here so that
 // Parse() can return it.
-var abstractSyntaxTree []backend.Stmt
+var abstractSyntaxTree []Stmt
 
-func Parse(input string) ([]backend.Stmt, error) {
+func Parse(input string) ([]Stmt, error) {
 	l := Lexer(input)
 	yyParse(l)
 	if l.err != nil {
@@ -24,8 +23,8 @@ func Parse(input string) ([]backend.Stmt, error) {
 
 %union{
 	tok      Token
-	arglist  []backend.Alias
-	stmtlist []backend.Stmt
+	arglist  []Alias
+	stmtlist []Stmt
 }
 
 %token <tok> CMD REG NUM CR
@@ -45,7 +44,7 @@ main:
 
 		errors.DebugParser(1, true, "main -> program\n")
 		errors.DebugParser(1, false, "\n")
-		errors.DebugParser(2, true, backend.DumpAst($1))
+		errors.DebugParser(2, true, DumpAst($1))
 		errors.DebugParser(2, false, "\n\n")
 	}
 
@@ -73,23 +72,23 @@ stmt:
 
 decl:
 	':' CMD args '{' delim program '}' {
-		cmd := backend.CmdAlias($2.Lexeme, $2.Line)
-		decl := backend.Decl(cmd, $3, $6)
-		$$ = []backend.Stmt{decl}
+		cmd := CmdAlias{$2.Lexeme, $2.Line}
+		decl := Decl{cmd, $3, $6}
+		$$ = []Stmt{decl}
 		errors.DebugParser(1, true, "decl -> :CMD args delim { program }\n")
 	}
 
 call:
 	CMD args {
-		cmd := backend.CmdAlias($1.Lexeme, $1.Line)
-		call := backend.Call(cmd, $2)
-		$$ = []backend.Stmt{call}
+		cmd := CmdAlias{$1.Lexeme, $1.Line}
+		call := Call{cmd, $2}
+		$$ = []Stmt{call}
 		errors.DebugParser(1, true, "call -> CMD args\n")
 	}
 
 args:
 	/* nullable */ {
-		$$ = make([]backend.Alias, 0, 0)
+		$$ = make([]Alias, 0, 0)
 		errors.DebugParser(1, true, "args -> EPSILON\n")
 	}
 |
@@ -105,14 +104,14 @@ args:
 
 arg:
 	REG {
-		reg := backend.RegAlias($1.Lexeme, $1.Line)
-		$$ = []backend.Alias{reg}
+		reg := RegAlias{$1.Lexeme, $1.Line}
+		$$ = []Alias{reg}
 		errors.DebugParser(1, true, "arg -> REG\n")
 	}
 |
 	NUM {
-		num := backend.NumAlias($1.Lexeme, $1.Line)
-		$$ = []backend.Alias{num}
+		num := NumAlias{$1.Lexeme, $1.Line}
+		$$ = []Alias{num}
 		errors.DebugParser(1, true, "arg -> NUM\n")
 	}
 

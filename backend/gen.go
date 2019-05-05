@@ -2,72 +2,179 @@ package backend
 
 import (
 	"imp/errors"
+	"imp/frontend"
 )
 
-//
-// AST -> Psuedo-instructions
-//
+type gen struct {
+	scopes []*scope
+	code   []Ins
+}
 
-// Wraps flatten() and drops in the global scope.
-func Flatten(prog []Stmt) ([]Ins, error) {
-	out, err := flatten(prog, GlobalScope())
-	errors.DebugBackend(1, true, DumpPsuedo(out))
+func (g *gen) local() *scope {
+	return g.scopes[len(g.scopes)-1]
+}
+
+func (g *gen) enterScope(inner *scope) {
+	g.scopes = append(g.scopes, inner)
+}
+
+func (g *gen) exitScope() {
+	g.scopes = g.scopes[:len(g.scopes)-1]
+}
+
+func (g *gen) lookup(alias frontend.Alias) (Psuedo, error) {
+	return g.local().lookup(alias)
+}
+
+func (g *gen) typecheck(args []frontend.Alias, params []Psuedo) ([]Psuedo, error) {
+	return g.local().typecheck(args, params)
+}
+
+func (g *gen) emit(i ...Ins) int {
+	g.code = append(g.code, i...)
+	return len(i)
+}
+
+// Returns a flat slice of psuedo-instructions generated from an AST.
+func Flatten(prog []frontend.Stmt) ([]Ins, error) {
+	g := &gen{
+		scopes: []*scope{globalScope()},
+		code:   []Ins{},
+	}
+	_, err := g.flatten(prog)
+	if err != nil {
+		return nil, err
+	}
+	errors.DebugBackend(1, true, DumpPsuedo(g.code))
 	errors.DebugBackend(1, false, "\n\n")
-	return out, err
+	return g.code, nil
 }
 
 // Converts an AST into a list of psuedo-instructions.
-func flatten(prog []Stmt, local *Scope) (out []Ins, err error) {
-	out = []Ins{}
-
+func (g *gen) flatten(prog []frontend.Stmt) (n int, err error) {
+	var i int
 	for _, stmt := range prog {
-		err = stmt.Gen(&out, local)
+		switch stmt := stmt.(type) {
+		case frontend.Call:
+			if i, err = g.genCall(stmt); err != nil {
+				return
+			}
+		case frontend.Decl:
+			if i, err = g.genDecl(stmt); err != nil {
+				return
+			}
+		}
+		n += i
+	}
+	return
+}
+
+// Generates psuedo-instructions for a call.
+func (g *gen) genCall(call frontend.Call) (n int, err error) {
+	// Look for Cmd in local scope.
+	if entry, err := g.lookup(call.Cmd); err == nil {
+		cmd := entry.(Cmd) // ensured by lookup()
+		args, err := g.typecheck(call.Args, cmd.Params)
 		if err != nil {
-			return
+			return 0, errors.Wrap(err, call)
+		}
+		return g.genProcCall(cmd, args), nil
+	}
+
+	// Look for Cmd as builtin.
+	if fn, ok := Builtin[call.String()]; ok {
+		args, err := g.typecheck(call.Args, nil)
+		if err != nil {
+			return 0, errors.Wrap(err, call)
+		}
+		ins, err := fn(args...)
+		if err != nil {
+			return 0, errors.Wrap(err, call)
+		}
+		return g.emit(ins...), nil
+	}
+
+	return 0, errors.Undefined(call)
+}
+
+// Generates psuedo-instructions for a declaration.
+func (g *gen) genDecl(decl frontend.Decl) (n int, err error) {
+	// Create parameter template for type checking call arguments.
+	params := make([]Psuedo, len(decl.Params))
+	for i, param := range decl.Params {
+		switch param.(type) {
+		case frontend.RegAlias:
+			params[i] = Reg(0)
+		case frontend.NumAlias:
+			params[i] = Num(0)
+		default:
+			err = errors.Unsupported("%s parameters", param.Type())
+			return 0, errors.Wrap(err, decl)
 		}
 	}
+
+	// Addr to be backfilled after decl body size known.
+	n += g.emit(Ins{
+		Name: "JUMP_I",
+	})
+
+	// Create entry and add to current scope.
+	cmd := Cmd{
+		Addr:   Num(len(g.code)),
+		Params: params,
+	}
+	g.local().define(decl.String(), cmd)
+
+	// Create inner scope for declaration body.
+	inner, err := localScope(decl)
+	if err != nil {
+		return
+	}
+	g.enterScope(inner)
+	defer g.exitScope()
+
+	// Generate psuedo-instructions for declaration body.
+	i, err := g.flatten(decl.Body)
+	if err != nil {
+		return 0, errors.Wrap(err, decl)
+	}
+	n += i
+
+	// Backfill jump over declaration body.
+	g.code[len(g.code)-1-i].Args = []Psuedo{Num(len(g.code))}
 
 	return
 }
 
-//
-// Procedure Call Generation
-//
-
-func genProcCall(name string, cmd Cmd, args []Psuedo) []Ins {
-	out := []Ins{}
-
-	out = append(out, genProcCallProlog(args)...)
-	out = append(out, Ins{
+func (g *gen) genProcCall(cmd Cmd, args []Psuedo) (n int) {
+	n += g.genProcCallProlog(args)
+	n += g.emit(Ins{
 		Name: "CALL_I",
 		Args: []Psuedo{ cmd.Addr },
-	}.WithComment("call " + name))
-	out = append(out, genProcCallEpilog(args)...)
-
-	return out
+	})
+	n += g.genProcCallEpilog(args)
+	return
 }
 
-func genProcCallProlog(args []Psuedo) []Ins {
-	out := []Ins{}
-
-	// See DepSeqs definition for info about dependency sequences.
-	regSeqs, numSeqs := DepSeqs(args)
+func (g *gen) genProcCallProlog(args []Psuedo) (n int) {
+	// See depSeqs definition for info about dependency sequences.
+	regSeqs, numSeqs := depSeqs(args)
 
 	// Generate psuedo-instructions for handling dep seqs that start with
 	// numbers.
 	for num, seq := range numSeqs {
 		i := len(seq) - 1
-		out = append(out, Ins{
+		n += g.emit(Ins{
 			Name: "PUSH_R",
 			Args: []Psuedo{ Reg(seq[i]) },
 		})
 		for i--; i >= 0; i-- {
-			out = append(out, Ins{
+			n += g.emit(Ins{
 				Name: "MOVE_R",
 				Args: []Psuedo{ Reg(seq[i]), Reg(seq[i+1]) },
 			})
 		}
-		out = append(out, Ins{
+		n += g.emit(Ins{
 			Name: "MOVE_I",
 			Args: []Psuedo{ Num(num), Reg(seq[0]) },
 		})
@@ -77,12 +184,12 @@ func genProcCallProlog(args []Psuedo) []Ins {
 	// registers.
 	for reg, seq := range regSeqs {
 		i := len(seq) - 1
-		out = append(out, Ins{
+		n += g.emit(Ins{
 			Name: "PUSH_R",
 			Args: []Psuedo{ Reg(seq[i]) },
 		})
 		for i--; i >= 0; i-- {
-			out = append(out, Ins{
+			n += g.emit(Ins{
 				Name: "MOVE_R",
 				Args: []Psuedo{ Reg(seq[i]), Reg(seq[i+1]) },
 			})
@@ -90,37 +197,35 @@ func genProcCallProlog(args []Psuedo) []Ins {
 
 		// Handle cyclic dep seqs.
 		if seq[len(seq)-1] == reg {
-			out = append(out, Ins{
+			n += g.emit(Ins{
 				Name: "POP_R",
 				Args: []Psuedo{ Reg(seq[0]) },
 			})
 		} else {
-			out = append(out, Ins{
+			n += g.emit(Ins{
 				Name: "MOVE_R",
 				Args: []Psuedo{ Reg(reg), Reg(seq[0]) },
 			})
 		}
 	}
 
-	return out
+	return
 }
 
-func genProcCallEpilog(args []Psuedo) []Ins {
-	out := []Ins{}
-
-	// See DepSeqs definition for info about dependency sequences.
-	regSeqs, numSeqs := DepSeqs(args)
+func (g *gen) genProcCallEpilog(args []Psuedo) (n int) {
+	// See depSeqs definition for info about dependency sequences.
+	regSeqs, numSeqs := depSeqs(args)
 
 	// Generate psuedo-instructions for handling dep seqs that start with
 	// numbers.
 	for _, seq := range numSeqs {
 		for i := 1; i < len(seq); i++ {
-			out = append(out, Ins{
+			n += g.emit(Ins{
 				Name: "MOVE_R",
 				Args: []Psuedo{ Reg(seq[i]), Reg(seq[i-1]) },
 			})
 		}
-		out = append(out, Ins{
+		n += g.emit(Ins{
 			Name: "POP_R",
 			Args: []Psuedo{ Reg(seq[len(seq)-1]) },
 		})
@@ -131,30 +236,30 @@ func genProcCallEpilog(args []Psuedo) []Ins {
 	for reg, seq := range regSeqs {
 		// Handle cyclic dep seqs.
 		if i := len(seq)-1; reg == seq[i] {
-			out = append(out, Ins{
+			n += g.emit(Ins{
 				Name: "PUSH_R",
 				Args: []Psuedo{ Reg(seq[0]) },
 			})
 		} else {
-			out = append(out, Ins{
+			n += g.emit(Ins{
 				Name: "MOVE_R",
 				Args: []Psuedo{ Reg(seq[0]), Reg(reg) },
 			})
 		}
 
 		for i := 1; i < len(seq); i++ {
-			out = append(out, Ins{
+			n += g.emit(Ins{
 				Name: "MOVE_R",
 				Args: []Psuedo{ Reg(seq[i]), Reg(seq[i-1]) },
 			})
 		}
-		out = append(out, Ins{
+		n += g.emit(Ins{
 			Name: "POP_R",
 			Args: []Psuedo{ Reg(seq[len(seq)-1]) },
 		})
 	}
 
-	return out
+	return
 }
 
 // Returns "dependency sequences" for generating instructions to perform
@@ -170,7 +275,7 @@ func genProcCallEpilog(args []Psuedo) []Ins {
 // A cyclic dependency sequence like A, B, A is valid and results in a circular
 // shift of contents of registers in the sequence. The length of a dependency
 // sequence is always at least 2.
-func DepSeqs(args []Psuedo) (regSeqs map[int][]int, numSeqs map[int][]int) {
+func depSeqs(args []Psuedo) (regSeqs map[int][]int, numSeqs map[int][]int) {
 	if len(args) == 0 {
 		return make(map[int][]int), make(map[int][]int)
 	}
@@ -225,9 +330,8 @@ func DepSeqs(args []Psuedo) (regSeqs map[int][]int, numSeqs map[int][]int) {
 	// because neither of those things even make sense (hence trivial).
 	for num, dst := range nums {
 		numSeqs[num] = []int{dst}
-		for {
+		for free[dst] {
 			dst, free[dst] = regs[dst], false
-			if !free[dst] { break }
 			numSeqs[num] = append(numSeqs[num], dst)
 		}
 	}

@@ -21,15 +21,15 @@ func DebugBackend(verbosity int, prefix bool, format string, a ...interface{}) {
 	}
 }
 
-func Undefined(v interface{String() string}) error {
-	return New(fmt.Sprintf("undefined: %s", v))
+func Undefined(t Textual) error {
+	return New(fmt.Sprintf("undefined: %s", t))
 }
 
-func Unsupported(feature string) error {
-	return New(fmt.Sprintf("unsupported feature: %s", feature))
+func Unsupported(format string, a ...interface{}) error {
+	return New("unsupported feature: " + format, a...)
 }
 
-func TypeMismatch(expected, found interface{Type() string}) error {
+func TypeMismatch(expected, found Typed) error {
 	return New(fmt.Sprintf(
 		"type mismatch: can't get %s from %s",
 		expected.Type(), found.Type(),

@@ -6,6 +6,16 @@ import (
 	"strings"
 )
 
+type Textual interface {
+	String() string
+	Pos() int
+	Typed
+}
+
+type Typed interface {
+	Type() string
+}
+
 func New(format string, a ...interface{}) error {
 	return errors.New(fmt.Sprintf(format, a...))
 }
@@ -42,3 +52,10 @@ func PrefixLines(s, prefix string) string {
 	return b.String()
 }
 
+func Indent(s string) string {
+	return PrefixLines(s, "\t")
+}
+
+func Wrap(err error, t Textual) error {
+	return New(fmt.Sprintf("%s at %d: %s: %s", t.Type(), t.Pos(), t, err))
+}
