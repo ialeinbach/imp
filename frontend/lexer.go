@@ -243,7 +243,7 @@ func (l *lexer) Lex(lval *yySymType) int {
 			return NUM
 		}
 
-		l.Error(errors.UnrecognizedInput(rune(ch)))
+		l.Error(errors.UnrecognizedInput(rune(ch)).Error())
 		return ch
 	}
 

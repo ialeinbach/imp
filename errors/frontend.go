@@ -35,6 +35,6 @@ func DebugParser(verbosity int, prefix bool, format string, a ...interface{}) {
 	}
 }
 
-func UnrecognizedInput(rn rune) string {
-	return fmt.Sprintf("Unrecognized input: %s\n", Repr(rn))
+func UnrecognizedInput(rn rune) error {
+	return New(fmt.Sprintf("Unrecognized input: %s\n", Repr(rn)))
 }
