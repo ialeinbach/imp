@@ -40,11 +40,13 @@ func (n Num) String() string {
 
 func (c Cmd) String() string {
 	var b strings.Builder
+
 	b.WriteString(fmt.Sprintf("[Addr: %d, Params:", c.Addr))
 	for _, typ := range c.Params {
 		b.WriteString(fmt.Sprintf(" %v", typ))
 	}
-	b.WriteString("]\n")
+	b.WriteString("]")
+
 	return b.String()
 }
 

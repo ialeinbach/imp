@@ -26,10 +26,9 @@ func newScope(name string) *scope {
 
 func (s scope) String() string {
 	var b strings.Builder
+
 	b.WriteString("====================\n")
-
 	b.WriteString(fmt.Sprintf("  Scope: %s\n", s.name))
-
 	b.WriteString("--------------------\n")
 
 	b.WriteString("  Registers\n")
@@ -45,6 +44,7 @@ func (s scope) String() string {
 	}
 
 	b.WriteString("====================\n")
+
 	return b.String()
 }
 
