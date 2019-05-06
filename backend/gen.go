@@ -29,8 +29,7 @@ func (g *gen) lookup(alias frontend.Alias) (Psuedo, error) {
 }
 
 func (g *gen) define(name string, cmd Cmd) {
-	delete(g.localScope().cmds, name)
-	g.localScope().cmds[name] = cmd
+	g.localScope().define(name, cmd)
 }
 
 func (g *gen) typecheck(args []frontend.Alias, params []Psuedo) ([]Psuedo, error) {
