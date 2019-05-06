@@ -21,8 +21,6 @@ Control flow is implemented in a recursive style. There are two special builtins
 * Require a "main" procedure to be used as an entry point.
 * Maybe define a return register a la x86 and rax?
 * Decide how to and implement plug-and-play target architectures.
-* Tidy error handling.
-* Implicitly return at the end of a procedure.
 * Optimize reg X passed as arg X to produce no psuedo-instructions (see examples/test3.imp).
 * Get `go install` working for repo.
 * Read unicode point by unicode point rather than byte by byte.
