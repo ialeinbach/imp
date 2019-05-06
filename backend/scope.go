@@ -161,7 +161,7 @@ func (s *scope) typecheck(args []frontend.Alias, params []Psuedo) ([]Psuedo, err
 				return nil, errors.TypeMismatch(param, arg)
 			}
 		default:
-			return nil, errors.Unsupported("%s arguments", param)
+			return nil, errors.Unsupported("%s arguments", param.Type())
 		}
 	}
 
