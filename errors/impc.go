@@ -5,10 +5,12 @@ import (
 	"os"
 )
 
+// Prints and imp error message.
 func Print(err error) {
 	fmt.Fprintf(os.Stderr, "imp: %s\n", err)
 }
 
+// Prints a message to report successful compilation.
 func Ok(filename string) {
 	fmt.Printf("Source file \"%s\" compiled with no errors.\n", filename)
 }
