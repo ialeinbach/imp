@@ -66,7 +66,7 @@ func globalScope() *scope {
 	}
 }
 
-func localScope(context frontend.Decl) (*scope, error) {
+func innerScope(context frontend.Decl) (*scope, error) {
 	local := newScope(context.String())
 	for i, param := range context.Params {
 		switch param := param.(type) {
