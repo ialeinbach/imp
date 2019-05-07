@@ -10,6 +10,7 @@ import (
 	"bufio"
 )
 
+// Represents a twerp instruction.
 type ins func(*twerp,[]backend.Psuedo) error
 
 const twerpUsage string = `Commands:
@@ -108,6 +109,7 @@ func (t *twerp) push(i int64) {
 	t.stack = append(t.stack, i)
 }
 
+// Executes loaded program.
 func (t *twerp) Exec(interactive bool) (int64, error) {
 	var (
 		decoded ins
