@@ -17,7 +17,6 @@ Control flow is implemented in a recursive style. There are two special builtins
 #### Todo
 
 * Add full ret/rec functionality.
-* Maybe define a return register a la x86 and rax?
 * Decide how to and implement plug-and-play target architectures.
 * Optimize reg X passed as arg X to produce no psuedo-instructions (see examples/test3.imp).
 * Get `go install` working for repo.
