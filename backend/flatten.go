@@ -3,6 +3,7 @@ package backend
 import (
 	"imp/errors"
 	"imp/frontend"
+	"strconv"
 )
 
 // Returns psuedo-instructions generated from a program.
@@ -72,10 +73,14 @@ func (g *gen) decl(decl frontend.Decl) (n int, err error) {
 	// Create parameter template for type checking call arguments.
 	params := make([]Psuedo, len(decl.Params))
 	for i, param := range decl.Params {
-		switch param.(type) {
+		switch param := param.(type) {
 		case frontend.RegAlias:
 			params[i] = Reg(0)
 		case frontend.NumAlias:
+			if _, err = strconv.ParseInt(param.String(), 0, 0); err == nil {
+				err = errors.New("params can't be number constants")
+				return 0, errors.Wrap(err, decl)
+			}
 			params[i] = Num(0)
 		default:
 			err = errors.Unsupported("%s parameters", param.Type())

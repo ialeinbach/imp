@@ -16,7 +16,6 @@ Control flow is implemented in a recursive style. There are two special builtins
 
 #### Todo
 
-* Prevent integer parameters whose alias can be interpreted as a number (i.e. #123 as a parameter).
 * Add full ret/rec functionality.
 * Require a "main" procedure to be used as an entry point.
 * Maybe define a return register a la x86 and rax?
