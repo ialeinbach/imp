@@ -58,11 +58,11 @@ type (
 func (c Call) Stmt() {}
 func (d Decl) Stmt() {}
 
-func (c Call) Pos() int { return c.Cmd.Pos() }
-func (d Decl) Pos() int { return d.Cmd.Pos() }
-
 func (c Call) String() string { return c.Cmd.String() }
 func (d Decl) String() string { return d.Cmd.String() }
 
 func (c Call) Type() string { return "Call" }
 func (d Decl) Type() string { return "Decl" }
+
+func (c Call) Pos() int { return c.Cmd.Pos() }
+func (d Decl) Pos() int { return d.Cmd.Pos() }
