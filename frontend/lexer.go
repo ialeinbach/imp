@@ -8,9 +8,11 @@ const (
 	maxCmdLength int = 32
 	maxRegLength int = 32
 	maxNumLength int = 32
+	maxCmtLength int = 79
 
 	numPrefix rune = '#'
 	regPrefix rune = '@'
+	cmtPrefix rune = '/'
 )
 
 //
@@ -96,6 +98,14 @@ var (
 	}
 	predNumBody lexerPred = func(rn rune) bool {
 		return predAlpha(rn) || predHex(rn)
+	}
+
+	// Comments are anything for a single line.
+	predCmtPrefix lexerPred = func(rn rune) bool {
+		return rn == cmtPrefix
+	}
+	predCmtBody lexerPred = func(rn rune) bool {
+		return rn != '\n'
 	}
 )
 
@@ -189,6 +199,13 @@ func (l *lexer) lexNum() int {
 	return l.lexPrefixed(predNumPrefix, predNumBody, maxNumLength)
 }
 
+func (l *lexer) lexCmt() int {
+	errors.DebugLexer(2, true, "Lexing CMT\n")
+	return l.lexPrefixed(predCmtPrefix, predCmtBody, maxCmtLength)
+
+
+}
+
 //
 // Handles For Goyacc
 //
@@ -241,6 +258,9 @@ func (l *lexer) Lex(lval *yySymType) int {
 		case l.lexNum() > 0:
 			l.emit("NUM", lval)
 			return NUM
+		case l.lexCmt() > 0:
+			l.emit("CMT", lval)
+			return CMT
 		}
 
 		l.Error(errors.UnrecognizedInput(rune(ch)).Error())

@@ -27,7 +27,7 @@ func Parse(input string) ([]Stmt, error) {
 	stmtlist []Stmt
 }
 
-%token <tok> CMD REG NUM CR
+%token <tok> CMD REG NUM CMT CR
 
 %type <arglist> arg args
 %type <stmtlist> decl call stmt program main
@@ -69,6 +69,10 @@ stmt:
 		$$ = $1
 		errors.DebugParser(1, true, "stmt -> call delim\n")
 	}
+|
+	comment delim {
+		errors.DebugParser(1, true, "stmt -> comment delim\n")
+	}
 
 decl:
 	':' CMD args '{' delim program '}' {
@@ -84,6 +88,11 @@ call:
 		call := Call{cmd, $2}
 		$$ = []Stmt{call}
 		errors.DebugParser(1, true, "call -> CMD args\n")
+	}
+
+comment:
+	CMT {
+		errors.DebugParser(1, true, "comment -> CMT\n")
 	}
 
 args:
