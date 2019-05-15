@@ -50,7 +50,7 @@ func (s scope) String() string {
 
 func globalScope() *scope {
 	return &scope{
-		name: "Global",
+		name: "__global__",
 		cmds: make(map[string]Cmd),
 		regs: map[string]Reg{
 			"0": Reg(0),
