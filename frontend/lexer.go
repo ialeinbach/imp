@@ -162,9 +162,9 @@ func (l *lexer) lexPrefixed(prefix lexerPred, body lexerPred, max int) (n int) {
 	// Must be self-referentiable.
 	var pred lexerPred
 
-	// Lex prefix then replace self in order to lex body.
+	// Lex prefix and replace self in order to lex body.
 	pred = func(rn rune) (ok bool) {
-		defer func() { pred = body }()
+		pred = body
 		return prefix(rn)
 	}
 
