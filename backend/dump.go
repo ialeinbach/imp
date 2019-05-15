@@ -5,6 +5,16 @@ import (
 	"strings"
 )
 
+func DumpScope(s *scope) string {
+	var b strings.Builder
+
+	for k, v := range s.regs {
+		b.WriteString(fmt.Sprintf("%v: %v\n", k, v))
+	}
+
+	return b.String()
+}
+
 func DumpPsuedo(psuedo []Ins) string {
 	var b strings.Builder
 	for i, ins := range psuedo {
