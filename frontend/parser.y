@@ -55,8 +55,8 @@ program:
 	}
 |
 	stmt {
-		errors.DebugParser(1, true, "program -> stmt\n")
 		$$ = $1
+		errors.DebugParser(1, true, "program -> stmt\n")
 	}
 
 stmt:
