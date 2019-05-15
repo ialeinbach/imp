@@ -62,5 +62,5 @@ func Indent(s string) string {
 
 // Wraps an error with the context of a Textual object.
 func Wrap(err error, t Textual) error {
-	return New(fmt.Sprintf("%s at %d: %s: %s", t.Type(), t.Pos(), t, err))
+	return New(fmt.Sprintf("%s at %d (%s): %s", t.Type(), t.Pos(), t, err))
 }
