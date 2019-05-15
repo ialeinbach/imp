@@ -22,7 +22,7 @@ func DebugBackend(verbosity int, prefix bool, format string, a ...interface{}) {
 }
 
 func Undefined(t Textual) error {
-	return New(fmt.Sprintf("undefined: %s", t))
+	return New(fmt.Sprintf("undefined %s: %s", t.Type(), t))
 }
 
 func Unsupported(format string, a ...interface{}) error {
