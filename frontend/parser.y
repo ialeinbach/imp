@@ -51,7 +51,7 @@ main:
 program:
 	program stmt {
 		$$ = append($1, $2...)
-		errors.DebugParser(1, true, "program -> program delim stmt\n")
+		errors.DebugParser(1, true, "program -> program stmt\n")
 	}
 |
 	stmt {
@@ -62,12 +62,12 @@ program:
 stmt:
 	decl delim {
 		$$ = $1
-		errors.DebugParser(1, true, "stmt -> decl \n")
+		errors.DebugParser(1, true, "stmt -> decl delim\n")
 	}
 |
 	call delim {
 		$$ = $1
-		errors.DebugParser(1, true, "stmt -> call \n")
+		errors.DebugParser(1, true, "stmt -> call delim\n")
 	}
 
 decl:
@@ -75,7 +75,7 @@ decl:
 		cmd := CmdAlias{$2.lexeme, $2.line}
 		decl := Decl{cmd, $3, $6}
 		$$ = []Stmt{decl}
-		errors.DebugParser(1, true, "decl -> :CMD args delim { program }\n")
+		errors.DebugParser(1, true, "decl -> :CMD args { delim program }\n")
 	}
 
 call:
