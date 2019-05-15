@@ -22,7 +22,7 @@ func Parse(input string) ([]Stmt, error) {
 %}
 
 %union{
-	tok      Token
+	tok      token
 	arglist  []Alias
 	stmtlist []Stmt
 }
@@ -72,7 +72,7 @@ stmt:
 
 decl:
 	':' CMD args '{' delim program '}' {
-		cmd := CmdAlias{$2.Lexeme, $2.Line}
+		cmd := CmdAlias{$2.lexeme, $2.line}
 		decl := Decl{cmd, $3, $6}
 		$$ = []Stmt{decl}
 		errors.DebugParser(1, true, "decl -> :CMD args delim { program }\n")
@@ -80,7 +80,7 @@ decl:
 
 call:
 	CMD args {
-		cmd := CmdAlias{$1.Lexeme, $1.Line}
+		cmd := CmdAlias{$1.lexeme, $1.line}
 		call := Call{cmd, $2}
 		$$ = []Stmt{call}
 		errors.DebugParser(1, true, "call -> CMD args\n")
@@ -104,13 +104,13 @@ args:
 
 arg:
 	REG {
-		reg := RegAlias{$1.Lexeme, $1.Line}
+		reg := RegAlias{$1.lexeme, $1.line}
 		$$ = []Alias{reg}
 		errors.DebugParser(1, true, "arg -> REG\n")
 	}
 |
 	NUM {
-		num := NumAlias{$1.Lexeme, $1.Line}
+		num := NumAlias{$1.lexeme, $1.line}
 		$$ = []Alias{num}
 		errors.DebugParser(1, true, "arg -> NUM\n")
 	}

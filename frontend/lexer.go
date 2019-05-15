@@ -31,9 +31,9 @@ type lexer struct {
 	err  error
 }
 
-type Token struct {
-	Lexeme string
-	Line   int
+type token struct {
+	lexeme string
+	line   int
 }
 
 func Lexer(input string) *lexer {
@@ -111,9 +111,9 @@ func (l *lexer) emit(name string, lval *yySymType) {
 	errors.DebugLexer(2, false, "\n")
 
 	// Tokenize lexeme and emit.
-	lval.tok = Token{
-		Lexeme: l.lexeme(),
-		Line:   l.line,
+	lval.tok = token{
+		lexeme: l.lexeme(),
+		line:   l.line,
 	}
 
 	// Move past consumed lexeme.
