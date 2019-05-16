@@ -155,11 +155,15 @@ InteractLoop:
 		case "MOVE_R": decoded = (*twerp).MoveR
 		case "ADD_I":  decoded = (*twerp).AddI
 		case "ADD_R":  decoded = (*twerp).AddR
+		case "SUB_I":  decoded = (*twerp).SubI
+		case "SUB_R":  decoded = (*twerp).SubR
 		case "RET":    decoded = (*twerp).Ret
 		case "JUMP_I": decoded = (*twerp).JumpI
 		case "CALL_I": decoded = (*twerp).CallI
 		case "PUSH_R": decoded = (*twerp).PushR
 		case "POP_R":  decoded = (*twerp).PopR
+		case "BNE_R":  decoded = (*twerp).BneR
+		case "BNE_I":  decoded = (*twerp).BneI
 		default:
 			return t.ret(), errors.New("fetched not recognized: " + fetched.Name)
 		}
@@ -170,6 +174,27 @@ InteractLoop:
 	return t.ret(), nil
 }
 
+func (t *twerp) BneR(args []backend.Psuedo) (err error) {
+	r0 := t.regs[int(args[0].(backend.Reg))]
+	r1 := t.regs[int(args[1].(backend.Reg))]
+	if r0 != r1 {
+		t.ip = int64(args[2].(backend.Num))
+	} else {
+		t.ip++
+	}
+	return
+}
+
+func (t *twerp) BneI(args []backend.Psuedo) (err error) {
+	n0 := int64(args[0].(backend.Num))
+	r1 := t.regs[int(args[1].(backend.Reg))]
+	if n0 != r1 {
+		t.ip = int64(args[2].(backend.Num))
+	} else {
+		t.ip++
+	}
+	return
+}
 
 func (t *twerp) MoveR(args []backend.Psuedo) (err error) {
 	t.regs[int(args[1].(backend.Reg))] = t.regs[int(args[0].(backend.Reg))]
@@ -191,6 +216,18 @@ func (t *twerp) AddR(args []backend.Psuedo) (err error) {
 
 func (t *twerp) AddI(args []backend.Psuedo) (err error) {
 	t.regs[int(args[1].(backend.Reg))] += int64(args[0].(backend.Num))
+	t.ip++
+	return
+}
+
+func (t *twerp) SubR(args []backend.Psuedo) (err error) {
+	t.regs[int(args[1].(backend.Reg))] -= int64(t.regs[int(args[0].(backend.Reg))])
+	t.ip++
+	return
+}
+
+func (t *twerp) SubI(args []backend.Psuedo) (err error) {
+	t.regs[int(args[1].(backend.Reg))] -= int64(args[0].(backend.Num))
 	t.ip++
 	return
 }
