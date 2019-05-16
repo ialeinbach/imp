@@ -1,0 +1,37 @@
+/ Product of @x and @y placed into @result.
+/   - @result must start as #0
+/   - @x is clobbered
+:mul @x, @y, @result {
+	ret #0, @x
+
+	add @y, @result
+	sub #1, @x
+
+	rec
+	ret
+}
+
+/ Factorial of @f placed into @result.
+/   - @result must start at #1
+/   - @f is clobbered
+:fct @f, @tmp, @result {
+	ret #0, @f
+	ret #1, @f
+
+	mov #0, @tmp
+	mul @result, @f, @tmp
+	mov @tmp, @result
+	sub #1, @f
+
+	rec
+	ret
+}
+
+/ For :fct, @result must start at #1
+mov #1, @0
+
+/ Pass input to :fct as @f.
+mov #5, @2
+
+/ Twerp prints @0 when done, so put result there.
+fct @2, @1, @0
