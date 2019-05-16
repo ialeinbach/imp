@@ -28,10 +28,12 @@ func (g *gen) prog(prog []frontend.Stmt) (n int, err error) {
 		switch stmt := stmt.(type) {
 		case frontend.Call:
 			if i, err = g.call(stmt); err != nil {
+				err = errors.Wrap(err, stmt)
 				return
 			}
 		case frontend.Decl:
 			if i, err = g.decl(stmt); err != nil {
+				err = errors.Wrap(err, stmt)
 				return
 			}
 		}
@@ -41,35 +43,35 @@ func (g *gen) prog(prog []frontend.Stmt) (n int, err error) {
 }
 
 // Generates psuedo-instructions for a call.
-func (g *gen) call(call frontend.Call) (n int, err error) {
-	// Look for Cmd in local scope.
-	if entry, err := g.lookup(call.Cmd); err == nil {
-		cmd := entry.(Cmd) // ensured by lookup()
+func (g *gen) call(call frontend.Call) (int, error) {
+	// Look for Cmd in surrounding scopes.
+	if ps, err := g.lookup(call.Cmd); err == nil {
+		cmd := ps.(Cmd) // ensured by lookup()
 		args, err := g.typecheck(call.Args, cmd.Params)
 		if err != nil {
-			return 0, errors.Wrap(err, call)
+			return 0, err
 		}
 		return g.procCall(cmd, args), nil
 	}
 
 	// Look for Cmd as builtin.
-	if fn, ok := Builtin[call.String()]; ok {
+	if fn, ok := builtins[call.String()]; ok {
 		args, err := g.typecheck(call.Args, nil)
 		if err != nil {
-			return 0, errors.Wrap(err, call)
+			return 0, err
 		}
-		ins, err := fn(args...)
+		n, err := fn(g, args...)
 		if err != nil {
-			return 0, errors.Wrap(err, call)
+			return 0, err
 		}
-		return g.emit(ins...), nil
+		return n, err
 	}
 
 	return 0, errors.Undefined(call)
 }
 
 // Generates psuedo-instructions for a declaration.
-func (g *gen) decl(decl frontend.Decl) (n int, err error) {
+func (g *gen) decl(decl frontend.Decl) (int, error) {
 	// Create parameter template for type checking call arguments.
 	params := make([]Psuedo, len(decl.Params))
 	for i, param := range decl.Params {
@@ -77,48 +79,46 @@ func (g *gen) decl(decl frontend.Decl) (n int, err error) {
 		case frontend.RegAlias:
 			params[i] = Reg(0)
 		case frontend.NumAlias:
-			if _, err = strconv.ParseInt(param.String(), 0, 0); err == nil {
-				err = errors.New("params can't be number constants")
-				return 0, errors.Wrap(err, decl)
+			if _, err := strconv.ParseInt(param.String(), 0, 0); err == nil {
+				return 0, errors.New("params can't be number constants")
 			}
 			params[i] = Num(0)
 		default:
-			err = errors.Unsupported("%s parameters", param.Type())
-			return 0, errors.Wrap(err, decl)
+			return 0, errors.Unsupported("%s parameters", param.Type())
 		}
 	}
 
 	// Addr to be backfilled after decl body size known.
-	n += g.emit(Ins{
+	n := g.emit(Ins{
 		Name: "JUMP_I",
 	})
 
 	// Create entry and add to current scope.
 	cmd := Cmd{
-		Addr:   Num(len(g.code)),
+		Addr:   g.here(),
 		Params: params,
 	}
 	g.define(decl.String(), cmd)
 
 	// Create inner scope for declaration body.
-	inner, err := innerScope(decl)
+	err := g.enterScope(decl)
 	if err != nil {
-		return
+		return 0, err
 	}
-	g.enterScope(inner)
+	g.define(g.localScope().name, cmd)
 	defer g.exitScope()
 
 	// Generate psuedo-instructions for declaration body.
 	i, err := g.prog(decl.Body)
 	if err != nil {
-		return 0, errors.Wrap(err, decl)
+		return 0, err
 	}
 	n += i
 
 	// Backfill jump over declaration body.
-	g.code[len(g.code)-1-i].Args = []Psuedo{Num(len(g.code))}
+	g.code[len(g.code)-1-i].Args = []Psuedo{ g.here() }
 
-	return
+	return n, nil
 }
 
 func (g *gen) procCall(cmd Cmd, args []Psuedo) (n int) {
