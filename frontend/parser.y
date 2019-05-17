@@ -3,7 +3,7 @@
 package frontend
 
 import (
-	"imp/errors"
+	"github.com/ialeinbach/imp/errors"
 )
 
 // yyParse can only return an int. Final grammar rule places AST here so that

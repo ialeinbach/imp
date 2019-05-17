@@ -4,7 +4,11 @@
 
 #### Usage
 
-Make sure to clone this repo into $GOPATH/src (for now). Run `make imp` to build the compiler. Run `make twerp` to build the interpreter.
+Download with `go get github.com/ialeinbach/imp`.
+
+To build the compiler, run `make imp`.
+To build the interpreter, run `make twerp`.
+To build both, run `make`.
 
 There are two types of statements: procedure calls (calls) and procedure declarations (decls). Newlines must be placed at the end of a call, end of a decl, and after the open brace of a decl. Decls cannot be nested (yet...?).
 
@@ -18,5 +22,4 @@ Control flow is implemented in a recursive style. There are two special builtins
 
 * Decide how to and implement plug-and-play target architectures.
 * Optimize reg X passed as arg X to produce no psuedo-instructions (see examples/test3.imp).
-* Get `go install` working for repo.
 * Read unicode point by unicode point rather than byte by byte.

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"imp/backend"
-	"imp/errors"
+	"github.com/ialeinbach/imp/backend"
+	"github.com/ialeinbach/imp/errors"
 )
 
 func configLexerVerbosity(short, long int) {

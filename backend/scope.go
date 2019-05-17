@@ -1,11 +1,12 @@
 package backend
 
 import (
-	"imp/errors"
-	"imp/frontend"
 	"strings"
 	"fmt"
 	"strconv"
+
+	"github.com/ialeinbach/imp/errors"
+	"github.com/ialeinbach/imp/frontend"
 )
 
 type scope struct {

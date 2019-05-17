@@ -1,7 +1,7 @@
 package backend
 
 import (
-	"imp/frontend"
+	"github.com/ialeinbach/imp/frontend"
 )
 
 type gen struct{

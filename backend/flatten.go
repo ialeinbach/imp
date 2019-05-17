@@ -1,8 +1,8 @@
 package backend
 
 import (
-	"imp/errors"
-	"imp/frontend"
+	"github.com/ialeinbach/imp/errors"
+	"github.com/ialeinbach/imp/frontend"
 	"strconv"
 )
 

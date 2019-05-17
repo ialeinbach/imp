@@ -1,7 +1,7 @@
 package backend
 
 import (
-	"imp/errors"
+	"github.com/ialeinbach/imp/errors"
 )
 
 type genFn func(*gen, ...Psuedo) (int, error)

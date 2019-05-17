@@ -2,12 +2,13 @@ package main
 
 import (
 	"errors"
-	"imp/backend"
 	"fmt"
 	"os"
 	"strings"
 	"strconv"
 	"bufio"
+
+	"github.com/ialeinbach/imp/backend"
 )
 
 // Represents a twerp instruction.

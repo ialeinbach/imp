@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 
-	"imp/errors"
-	"imp/frontend"
-	"imp/backend"
+	"github.com/ialeinbach/imp/errors"
+	"github.com/ialeinbach/imp/frontend"
+	"github.com/ialeinbach/imp/backend"
 )
 
 var interactiveMode bool

@@ -7,9 +7,9 @@ import (
 	"io/ioutil"
 	"os"
 
-	"imp/frontend"
-	"imp/backend"
-	"imp/errors"
+	"github.com/ialeinbach/imp/frontend"
+	"github.com/ialeinbach/imp/backend"
+	"github.com/ialeinbach/imp/errors"
 )
 
 const (

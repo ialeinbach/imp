@@ -1,7 +1,7 @@
 package frontend
 
 import (
-	"imp/errors"
+	"github.com/ialeinbach/imp/errors"
 )
 
 const (

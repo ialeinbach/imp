@@ -2,8 +2,9 @@ package frontend
 
 import (
 	"fmt"
-	"imp/errors"
 	"strings"
+
+	"github.com/ialeinbach/imp/errors"
 )
 
 func DumpArg(arg Alias) string {
