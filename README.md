@@ -16,9 +16,7 @@ Control flow is implemented in a recursive style. There are two special builtins
 
 #### Todo
 
-* Add full ret/rec functionality.
 * Decide how to and implement plug-and-play target architectures.
 * Optimize reg X passed as arg X to produce no psuedo-instructions (see examples/test3.imp).
 * Get `go install` working for repo.
 * Read unicode point by unicode point rather than byte by byte.
-* Add comments. Maybe parentheses? No line comment?
