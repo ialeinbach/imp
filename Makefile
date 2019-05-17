@@ -11,6 +11,7 @@ twerp: imp interp/*.go
 frontend/lexer.go: frontend/parser.go
 
 frontend/parser.go: frontend/parser.y
+	go get -u golang.org/x/tools/cmd/goyacc
 	go generate -x
 
 test: imp
@@ -22,5 +23,5 @@ test: imp
 	$(MAKE) clean
 
 clean:
-	$(RM) frontend/parser.go frontend/y.output
+	$(RM) frontend/y.output
 	$(RM) imp twerp
