@@ -4,7 +4,7 @@
 
 #### Usage
 
-Download with `go get github.com/ialeinbach/imp`.
+Download (without installing) by running `go get -u -d github.com/ialeinbach/imp`.
 
 To build the compiler, run `make imp`.
 To build the interpreter, run `make twerp`.
